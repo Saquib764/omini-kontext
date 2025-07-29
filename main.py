@@ -1,5 +1,5 @@
 import torch
-from diffusers import FluxOminiKontextPipeline
+from src.pipeline_flux_omini_kontext import FluxOminiKontextPipeline
 from diffusers.utils import load_image
 
 pipe = FluxOminiKontextPipeline.from_pretrained(
