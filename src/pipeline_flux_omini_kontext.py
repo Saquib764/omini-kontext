@@ -61,7 +61,7 @@ EXAMPLE_DOC_STRING = """
         >>> from diffusers import FluxKontextPipeline
         >>> from diffusers.utils import load_image
 
-        >>> pipe = FluxKontextPipeline.from_pretrained(
+        >>> pipe = FluxOminiKontextPipeline.from_pretrained(
         ...     "black-forest-labs/FLUX.1-Kontext-dev", torch_dtype=torch.bfloat16
         ... )
         >>> pipe.to("cuda")
@@ -188,7 +188,7 @@ def retrieve_latents(
         raise AttributeError("Could not access latents of provided encoder_output")
 
 
-class FluxKontextPipeline(
+class FluxOminiKontextPipeline(
     DiffusionPipeline,
     FluxLoraLoaderMixin,
     FromSingleFileMixin,
@@ -704,7 +704,7 @@ class FluxKontextPipeline(
 
         return latents, image_latents, latent_ids, image_ids
 
-    def prepare_condition_latents(
+    def prepare_reference_latents(
         self,
         image: Optional[torch.Tensor],
         batch_size: int,
@@ -781,7 +781,7 @@ class FluxKontextPipeline(
     def __call__(
         self,
         image: Optional[PipelineImageInput] = None,
-        condition: Optional[PipelineImageInput] = None,
+        reference: Optional[PipelineImageInput] = None,
         prompt: Union[str, List[str]] = None,
         prompt_2: Optional[Union[str, List[str]]] = None,
         negative_prompt: Union[str, List[str]] = None,
@@ -822,12 +822,12 @@ class FluxKontextPipeline(
                 or tensors, the expected shape should be `(B, C, H, W)` or `(C, H, W)`. If it is a numpy array or a
                 list of arrays, the expected shape should be `(B, H, W, C)` or `(H, W, C)` It can also accept image
                 latents as `image`, but if passing latents directly it is not encoded again.
-            condition (`torch.Tensor`, `PIL.Image.Image`, `np.ndarray`, `List[torch.Tensor]`, `List[PIL.Image.Image]`, or `List[np.ndarray]`):
-                `Image`, numpy array or tensor representing an image batch to be used as the condition. For both
+            reference (`torch.Tensor`, `PIL.Image.Image`, `np.ndarray`, `List[torch.Tensor]`, `List[PIL.Image.Image]`, or `List[np.ndarray]`):
+                `Image`, numpy array or tensor representing an image batch to be used as the reference. For both
                 numpy array and pytorch tensor, the expected value range is between `[0, 1]` If it's a tensor or a list
                 or tensors, the expected shape should be `(B, C, H, W)` or `(C, H, W)`. If it is a numpy array or a
                 list of arrays, the expected shape should be `(B, H, W, C)` or `(H, W, C)` It can also accept image
-                latents as `condition`, but if passing latents directly it is not encoded again.
+                latents as `reference`, but if passing latents directly it is not encoded again.
             prompt (`str` or `List[str]`, *optional*):
                 The prompt or prompts to guide the image generation. If not defined, one has to pass `prompt_embeds`.
                 instead.
@@ -1047,17 +1047,17 @@ class FluxKontextPipeline(
         print("latent_ids", latent_ids.shape)
 
         # 4.5 Preprocess condition
-        if condition is not None:
-            cond = condition[0] if isinstance(condition, list) else condition
-            cond_height, cond_width = self.image_processor.get_default_height_width(cond)
-            cond_height = cond_height // multiple_of * multiple_of
-            cond_width = cond_width // multiple_of * multiple_of
-            condition = self.image_processor.resize(condition, cond_height, cond_width)
-            condition = self.image_processor.preprocess(condition, cond_height, cond_width)
+        if reference is not None:
+            ref = reference[0] if isinstance(reference, list) else reference
+            ref_height, ref_width = self.image_processor.get_default_height_width(ref)
+            ref_height = ref_height // multiple_of * multiple_of
+            ref_width = ref_width // multiple_of * multiple_of
+            reference = self.image_processor.resize(reference, ref_height, ref_width)
+            reference = self.image_processor.preprocess(reference, ref_height, ref_width)
         
         # 5.6 Prepare condition latents
-        condition_latents, condition_ids = self.prepare_condition_latents(
-            condition,
+        reference_latents, reference_ids = self.prepare_reference_latents(
+            reference,
             batch_size * num_images_per_prompt,
             num_channels_latents,
             height,
@@ -1066,15 +1066,15 @@ class FluxKontextPipeline(
             device,
             generator,
         )
-        if condition_ids is not None:
-            latent_ids = torch.cat([latent_ids, condition_ids], dim=0)  # dim 0 is sequence dimension
+        if reference_ids is not None:
+            latent_ids = torch.cat([latent_ids, reference_ids], dim=0)  # dim 0 is sequence dimension
             if image_latents is not None:
-                image_latents = torch.cat([image_latents, condition_latents], dim=1)
+                image_latents = torch.cat([image_latents, reference_latents], dim=1)
             else:
-                image_latents = condition_latents
+                image_latents = reference_latents
         
-        print("condition_latents", condition_latents.shape)
-        print("condition_ids", condition_ids.shape)
+        print("reference_latents", reference_latents.shape)
+        print("reference_ids", reference_ids.shape)
         print("image_latents", image_latents.shape)
         print("latent_ids", latent_ids.shape)
         # 5. Prepare timesteps
