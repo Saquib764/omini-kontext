@@ -13,9 +13,10 @@
 # limitations under the License.
 
 import inspect
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+import PIL.Image
 import torch
 from transformers import (
     CLIPImageProcessor,
@@ -26,11 +27,13 @@ from transformers import (
     T5TokenizerFast,
 )
 
-from ...image_processor import PipelineImageInput, VaeImageProcessor
-from ...loaders import FluxIPAdapterMixin, FluxLoraLoaderMixin, FromSingleFileMixin, TextualInversionLoaderMixin
-from ...models import AutoencoderKL, FluxTransformer2DModel
-from ...schedulers import FlowMatchEulerDiscreteScheduler
-from ...utils import (
+from diffusers.image_processor import PipelineImageInput, VaeImageProcessor
+from diffusers.loaders import FluxIPAdapterMixin, FluxLoraLoaderMixin, FromSingleFileMixin, TextualInversionLoaderMixin
+from diffusers.models import AutoencoderKL, FluxTransformer2DModel
+from diffusers.pipelines.flux.pipeline_output import FluxPipelineOutput
+from diffusers.pipelines.pipeline_utils import DiffusionPipeline
+from diffusers.schedulers import FlowMatchEulerDiscreteScheduler
+from diffusers.utils import (
     USE_PEFT_BACKEND,
     is_torch_xla_available,
     logging,
@@ -38,9 +41,7 @@ from ...utils import (
     scale_lora_layers,
     unscale_lora_layers,
 )
-from ...utils.torch_utils import randn_tensor
-from ..pipeline_utils import DiffusionPipeline
-from .pipeline_output import FluxPipelineOutput
+from diffusers.utils.torch_utils import randn_tensor
 
 
 if is_torch_xla_available():
@@ -703,6 +704,58 @@ class FluxKontextPipeline(
 
         return latents, image_latents, latent_ids, image_ids
 
+    def prepare_condition_latents(
+        self,
+        image: Optional[torch.Tensor],
+        batch_size: int,
+        num_channels_latents: int,
+        height: int,
+        width: int,
+        dtype: torch.dtype,
+        device: torch.device,
+        generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+    ):
+        if isinstance(generator, list) and len(generator) != batch_size:
+            raise ValueError(
+                f"You have passed a list of generators of length {len(generator)}, but requested an effective batch"
+                f" size of {batch_size}. Make sure the batch size matches the length of the generators."
+            )
+
+        # VAE applies 8x compression on images but we must also account for packing which requires
+        # latent height and width to be divisible by 2.
+        height = 2 * (int(height) // (self.vae_scale_factor * 2))
+        width = 2 * (int(width) // (self.vae_scale_factor * 2))
+
+        image_latents = image_ids = None
+        if image is not None:
+            image = image.to(device=device, dtype=dtype)
+            if image.shape[1] != self.latent_channels:
+                image_latents = self._encode_vae_image(image=image, generator=generator)
+            else:
+                image_latents = image
+            if batch_size > image_latents.shape[0] and batch_size % image_latents.shape[0] == 0:
+                # expand init_latents for batch_size
+                additional_image_per_prompt = batch_size // image_latents.shape[0]
+                image_latents = torch.cat([image_latents] * additional_image_per_prompt, dim=0)
+            elif batch_size > image_latents.shape[0] and batch_size % image_latents.shape[0] != 0:
+                raise ValueError(
+                    f"Cannot duplicate `image` of batch size {image_latents.shape[0]} to {batch_size} text prompts."
+                )
+            else:
+                image_latents = torch.cat([image_latents], dim=0)
+
+            image_latent_height, image_latent_width = image_latents.shape[2:]
+            image_latents = self._pack_latents(
+                image_latents, batch_size, num_channels_latents, image_latent_height, image_latent_width
+            )
+            image_ids = self._prepare_latent_image_ids(
+                batch_size, image_latent_height // 2, image_latent_width // 2, device, dtype
+            )
+            # image ids are the same as latent ids with the first dimension set to 1 instead of 0
+            image_ids[..., 0] = 1
+
+        return image_latents, image_ids
+
     @property
     def guidance_scale(self):
         return self._guidance_scale
@@ -728,6 +781,7 @@ class FluxKontextPipeline(
     def __call__(
         self,
         image: Optional[PipelineImageInput] = None,
+        condition: Optional[PipelineImageInput] = None,
         prompt: Union[str, List[str]] = None,
         prompt_2: Optional[Union[str, List[str]]] = None,
         negative_prompt: Union[str, List[str]] = None,
@@ -768,6 +822,12 @@ class FluxKontextPipeline(
                 or tensors, the expected shape should be `(B, C, H, W)` or `(C, H, W)`. If it is a numpy array or a
                 list of arrays, the expected shape should be `(B, H, W, C)` or `(H, W, C)` It can also accept image
                 latents as `image`, but if passing latents directly it is not encoded again.
+            condition (`torch.Tensor`, `PIL.Image.Image`, `np.ndarray`, `List[torch.Tensor]`, `List[PIL.Image.Image]`, or `List[np.ndarray]`):
+                `Image`, numpy array or tensor representing an image batch to be used as the condition. For both
+                numpy array and pytorch tensor, the expected value range is between `[0, 1]` If it's a tensor or a list
+                or tensors, the expected shape should be `(B, C, H, W)` or `(C, H, W)`. If it is a numpy array or a
+                list of arrays, the expected shape should be `(B, H, W, C)` or `(H, W, C)` It can also accept image
+                latents as `condition`, but if passing latents directly it is not encoded again.
             prompt (`str` or `List[str]`, *optional*):
                 The prompt or prompts to guide the image generation. If not defined, one has to pass `prompt_embeds`.
                 instead.
@@ -983,6 +1043,40 @@ class FluxKontextPipeline(
         if image_ids is not None:
             latent_ids = torch.cat([latent_ids, image_ids], dim=0)  # dim 0 is sequence dimension
 
+        print("image_latents", image_latents.shape)
+        print("latent_ids", latent_ids.shape)
+
+        # 4.5 Preprocess condition
+        if condition is not None:
+            cond = condition[0] if isinstance(condition, list) else condition
+            cond_height, cond_width = self.image_processor.get_default_height_width(cond)
+            cond_height = cond_height // multiple_of * multiple_of
+            cond_width = cond_width // multiple_of * multiple_of
+            condition = self.image_processor.resize(condition, cond_height, cond_width)
+            condition = self.image_processor.preprocess(condition, cond_height, cond_width)
+        
+        # 5.6 Prepare condition latents
+        condition_latents, condition_ids = self.prepare_condition_latents(
+            condition,
+            batch_size * num_images_per_prompt,
+            num_channels_latents,
+            height,
+            width,
+            prompt_embeds.dtype,
+            device,
+            generator,
+        )
+        if condition_ids is not None:
+            latent_ids = torch.cat([latent_ids, condition_ids], dim=0)  # dim 0 is sequence dimension
+            if image_latents is not None:
+                image_latents = torch.cat([image_latents, condition_latents], dim=1)
+            else:
+                image_latents = condition_latents
+        
+        print("condition_latents", condition_latents.shape)
+        print("condition_ids", condition_ids.shape)
+        print("image_latents", image_latents.shape)
+        print("latent_ids", latent_ids.shape)
         # 5. Prepare timesteps
         sigmas = np.linspace(1.0, 1 / num_inference_steps, num_inference_steps) if sigmas is None else sigmas
         image_seq_len = latents.shape[1]
