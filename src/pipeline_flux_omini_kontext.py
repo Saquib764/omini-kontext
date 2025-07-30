@@ -707,6 +707,7 @@ class FluxOminiKontextPipeline(
     def prepare_reference_latents(
         self,
         image: Optional[torch.Tensor],
+        delta: List[int],
         batch_size: int,
         num_channels_latents: int,
         height: int,
@@ -753,6 +754,8 @@ class FluxOminiKontextPipeline(
             )
             # image ids are the same as latent ids with the first dimension set to 1 instead of 0
             image_ids[..., 0] = 1
+            image_ids[..., 1] = image_ids[..., 1] + delta[0]
+            image_ids[..., 2] = image_ids[..., 2] + delta[1]
 
         return image_latents, image_ids
 
@@ -1058,6 +1061,7 @@ class FluxOminiKontextPipeline(
         # 5.6 Prepare condition latents
         reference_latents, reference_ids = self.prepare_reference_latents(
             reference,
+            delta= [0, 1392//16]
             batch_size * num_images_per_prompt,
             num_channels_latents,
             height,
