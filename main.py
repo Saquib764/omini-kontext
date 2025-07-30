@@ -1,4 +1,5 @@
 import torch
+from PIL import Image
 from src.pipeline_flux_omini_kontext import FluxOminiKontextPipeline
 from diffusers.utils import load_image
 
@@ -7,13 +8,11 @@ pipe = FluxOminiKontextPipeline.from_pretrained(
 )
 pipe.to("cuda")
 
-image = load_image(
-    "https://firebasestorage.googleapis.com/v0/b/saquib-sh.appspot.com/o/thefluxtrain%2Fv02%2Feditor%2F35ae2291-a199-4a2e-9742-f9b0c43c3152%2Frgj44h.png?alt=media"
-).convert("RGB")
+image = Image.open("assets/boy_scene_small.png")
 
-reference = load_image(
-    "https://firebasestorage.googleapis.com/v0/b/saquib-sh.appspot.com/o/thefluxtrain%2Fv02%2Feditor%2F35ae2291-a199-4a2e-9742-f9b0c43c3152%2Fyv6onr.png?alt=media"
-).convert("RGB")
+reference = Image.open("assets/boy_reference_256.png")
+
+
 prompt = "add a cat to the image"
 result = pipe(
     image=image,
