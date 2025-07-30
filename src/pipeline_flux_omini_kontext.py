@@ -785,6 +785,7 @@ class FluxOminiKontextPipeline(
         self,
         image: Optional[PipelineImageInput] = None,
         reference: Optional[PipelineImageInput] = None,
+        reference_delta: List[int] = [0, 0],
         prompt: Union[str, List[str]] = None,
         prompt_2: Optional[Union[str, List[str]]] = None,
         negative_prompt: Union[str, List[str]] = None,
@@ -831,6 +832,8 @@ class FluxOminiKontextPipeline(
                 or tensors, the expected shape should be `(B, C, H, W)` or `(C, H, W)`. If it is a numpy array or a
                 list of arrays, the expected shape should be `(B, H, W, C)` or `(H, W, C)` It can also accept image
                 latents as `reference`, but if passing latents directly it is not encoded again.
+            reference_delta (`List[int]`, *optional*, defaults to [0, 0]):
+                The delta to be added to the reference image ids.
             prompt (`str` or `List[str]`, *optional*):
                 The prompt or prompts to guide the image generation. If not defined, one has to pass `prompt_embeds`.
                 instead.
@@ -1061,7 +1064,7 @@ class FluxOminiKontextPipeline(
         # 5.6 Prepare condition latents
         reference_latents, reference_ids = self.prepare_reference_latents(
             reference,
-            delta= [0, 1392//16]
+            reference_delta,
             batch_size * num_images_per_prompt,
             num_channels_latents,
             height,
