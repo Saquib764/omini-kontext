@@ -17,6 +17,7 @@ prompt = "add a cat to the image"
 result = pipe(
     image=image,
     reference=reference,
+    reference_delta=[0, 1392//16],
     prompt=prompt,
     guidance_scale=2.5,
     generator=torch.Generator().manual_seed(42),
