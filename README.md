@@ -29,6 +29,7 @@ More comming soon!
 - [ ] **Speed up by removing irrelevant pixels**
 - [ ] **Deploy a public demo**
 - [ ] **Deploy a replicate version**
+- [ ] **Add comfyUI integration**
 - [x] **Basic training script**
 - [x] **Basic inference script**
 
