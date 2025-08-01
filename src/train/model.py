@@ -146,7 +146,7 @@ class FluxOminiKontextModel(L.LightningModule):
             )
 
             # Prepare t and x_t
-            t = torch.rand((input_images.shape[0],), device=self.device)**2
+            t = torch.rand((input_images.shape[0],), device=self.device)
             x_1 = torch.randn_like(x_0).to(self.device)
             t_ = t.unsqueeze(1).unsqueeze(1)
             x_t = ((1 - t_) * x_0 + t_ * x_1).to(self.dtype)
