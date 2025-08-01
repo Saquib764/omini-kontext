@@ -79,13 +79,13 @@ image = pipe(
 
 ```bash
 # Core requirements
-pip install torch>=2.0.0 lightning>=2.0.0 diffusers>=0.25.0
+pip install torch>=2.0.0 lightning>=2.0.0
+
+# Install diffusers from GitHub (required for FluxKontext pipeline)
+pip install git+https://github.com/huggingface/diffusers
 
 # Training-specific requirements
 pip install -r requirements.txt
-
-# Optional: Install from source for latest features
-pip install git+https://github.com/huggingface/diffusers
 ```
 
 ### Verify Installation
