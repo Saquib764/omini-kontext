@@ -7,9 +7,7 @@ import numpy as np
 
 # Import local modules
 from pipeline_flux_omini_kontext import FluxOminiKontextPipeline
-from flux.transformer import tranformer_forward
-from flux.condition import Condition
-from flux.pipeline_tools import encode_images, prepare_text_input
+from pipeline_tools import encode_images, prepare_text_input
 
 
 class FluxOminiKontextModel(L.LightningModule):
