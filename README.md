@@ -165,6 +165,8 @@ result = pipe(
 )
 ```
 
+**Note**: The `reference_delta` value is specific to the trained LoRA and depends on the settings used during training. The recommended value is calculated as `(1024 + 512) // 16 = 96`. This formula accounts for the image dimensions and the model's internal scaling factor.
+
 ## 🛠️ Training
 
 ### Data Preparation
@@ -234,6 +236,8 @@ python train/script/train.py --config train/config/wandb.yaml
 
 See `examples/character_insert.ipynb` for a complete example of inserting characters into scenes.
 
+**Trained Model**: Check out the [omini-kontext-character](https://huggingface.co/saquiboye/omini-kontext-character) model on Hugging Face, which is specifically trained to insert cartoon characters into existing scenes.
+
 ### Custom Style Training
 
 ```python
@@ -293,7 +297,7 @@ lora_config = {
 |-----------|------|---------|-------------|
 | `image` | PIL.Image | None | Input image |
 | `reference` | PIL.Image | None | Reference image |
-| `reference_delta` | List[int] | [0, 0] | Position offset for reference |
+| `reference_delta` | List[int] | [0, 0] | Position offset for reference (specific to trained LoRA, recommended: (1024+512)//16 = 96) |
 | `prompt` | str | None | Text prompt |
 | `prompt_2` | str | None | Secondary text prompt |
 | `guidance_scale` | float | 3.5 | Classifier-free guidance scale |
