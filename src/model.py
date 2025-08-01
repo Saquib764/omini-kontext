@@ -1,5 +1,4 @@
 import lightning as L
-from diffusers.pipelines import FluxOminiKontextPipeline
 import torch
 from peft import LoraConfig, get_peft_model_state_dict
 import prodigyopt
