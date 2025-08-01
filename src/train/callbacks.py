@@ -106,7 +106,7 @@ class TrainingCallback(L.Callback):
             Image.open("assets/boy_scene_big.png")
             .convert("RGB")
         )
-        test_list.append((init_img, reference_img, [0, (1024)//16], "Add the character to the image"))
+        test_list.append((init_img, reference_img, [0, (1024 + 512)//16], "Add the character to the image"))
         
 
         if not os.path.exists(save_path):
