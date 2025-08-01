@@ -18,18 +18,6 @@ A comprehensive Lightning-based training framework for fine-tuning the Flux Omin
 - **📊 Comprehensive Monitoring**: Built-in logging and experiment tracking
 - **🎨 Flexible Resolution**: Support for various image resolutions and aspect ratios
 
-## 📋 Table of Contents
-
-- [Quick Start](#quick-start)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Training](#training)
-- [Examples](#examples)
-- [Model Architecture](#model-architecture)
-- [Configuration](#configuration)
-- [API Reference](#api-reference)
-- [Troubleshooting](#troubleshooting)
-
 ## 🚀 Quick Start
 
 ### Setup Environment
@@ -238,6 +226,17 @@ See `examples/character_insert.ipynb` for a complete example of inserting charac
 
 **Trained Model**: Check out the [omini-kontext-character](https://huggingface.co/saquiboye/omini-kontext-character) model on Hugging Face, which is specifically trained to insert cartoon characters into existing scenes.
 
+## 🎨 Generated Samples
+
+### Character Insertion
+
+The following examples demonstrate how the trained model can insert cartoon characters into existing scenes:
+
+| Scene | Reference Character | Generated Result |
+|-------|-------------------|------------------|
+| ![Scene 1](assets/scene_01.png) | ![Boy Reference](assets/boy_reference_512.png) | ![Output 1](assets/output_01.png) |
+| ![Scene 2](assets/scene_02.png) | ![Boy Reference](assets/boy_reference_512.png) | ![Output 2](assets/output_02.png) |
+
 ### Custom Style Training
 
 ```python
@@ -315,82 +314,6 @@ lora_config = {
 | `gradient_accumulation_steps` | int | 1 | Gradient accumulation steps |
 | `warmup_steps` | int | 100 | Learning rate warmup steps |
 
-## 📖 API Reference
-
-### FluxOminiKontextPipeline
-
-Main pipeline class for image generation.
-
-#### Methods
-
-- `__call__()`: Generate images from inputs
-- `encode_prompt()`: Encode text prompts
-- `encode_image()`: Encode input images
-- `prepare_latents()`: Prepare latent representations
-- `enable_vae_slicing()`: Enable VAE memory optimization
-- `disable_vae_slicing()`: Disable VAE memory optimization
-
-#### Properties
-
-- `guidance_scale`: Current guidance scale
-- `num_timesteps`: Number of timesteps
-- `current_timestep`: Current timestep
-
-### Data Format
-
-```python
-# Training batch format
-batch = {
-    "input_image": torch.Tensor,      # [B, C, H, W]
-    "reference_image": torch.Tensor,   # [B, C, H, W]
-    "prompt": List[str],              # Text prompts
-    "reference_delta": List[List[int]], # Position deltas
-    "look_ahead": List[int]           # Look ahead parameters
-}
-```
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**Out of Memory (OOM)**
-```python
-# Enable memory optimizations
-pipe.enable_vae_slicing()
-pipe.enable_vae_tiling()
-
-# Use gradient checkpointing
-pipe.transformer.enable_gradient_checkpointing()
-```
-
-**Slow Training**
-```python
-# Use mixed precision
-pipe = pipe.to(torch.bfloat16)
-
-# Enable optimizations
-torch.backends.cudnn.benchmark = True
-```
-
-**Model Loading Issues**
-```python
-# Clear cache
-torch.cuda.empty_cache()
-
-# Load with specific dtype
-pipe = FluxOminiKontextPipeline.from_pretrained(
-    "black-forest-labs/FLUX.1-Kontext-dev",
-    torch_dtype=torch.float16
-)
-```
-
-### Performance Tips
-
-1. **Use appropriate batch sizes** for your GPU memory
-2. **Enable gradient checkpointing** for memory efficiency
-3. **Use mixed precision** (bfloat16/float16) for speed
-4. **Monitor GPU memory** usage during training
-5. **Use VAE optimizations** for large images
 
 ## 📋 To-do
 
@@ -427,6 +350,17 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 - **HuggingFace** for the diffusers library
 - **PyTorch Lightning** for the training framework
 - **PEFT** for LoRA implementation
+- **[OminiControl](https://github.com/Yuanshi9815/OminiControl)** for the universal control framework for Diffusion Transformers
+
+## 📚 References
+
+```bibtex
+@article{omini-kontext,
+  title={OminiKontext: Multi-image references for image to image instruction models},
+  author={Saquib Alam},
+  year={2025}
+}
+```
 
 ## 📞 Support
 
