@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Union
 import numpy as np
 
 # Import local modules
-from pipeline_flux_omini_kontext import FluxOminiKontextPipeline
+from ..pipeline_flux_omini_kontext import FluxOminiKontextPipeline
 from pipeline_tools import encode_images, prepare_text_input
 
 
@@ -197,72 +197,3 @@ class FluxOminiKontextModel(L.LightningModule):
         # Forward pass for inference
         return self.step(batch)
 
-
-# Example usage and configuration
-def create_model_config():
-    """Create a default model configuration"""
-    return {
-        "flux_pipe_id": "black-forest-labs/FLUX.1-Kontext-dev",
-        "lora_config": {
-            "r": 16,
-            "lora_alpha": 32,
-            "target_modules": ["to_q", "to_k", "to_v", "to_out.0"],
-            "lora_dropout": 0.1,
-            "bias": "none",
-            "task_type": "CAUSAL_LM"
-        },
-        "optimizer_config": {
-            "type": "AdamW",
-            "params": {
-                "lr": 1e-4,
-                "weight_decay": 0.01,
-                "betas": (0.9, 0.999)
-            }
-        },
-        "model_config": {},
-        "gradient_checkpointing": True
-    }
-
-
-# Example training script
-def train_model(
-    train_dataloader,
-    val_dataloader=None,
-    config=None,
-    max_epochs=10,
-    save_path="./lora_weights"
-):
-    """Train the Flux Omini Kontext LoRA model"""
-    if config is None:
-        config = create_model_config()
-    
-    model = FluxOminiKontextModel(**config)
-    
-    trainer = L.Trainer(
-        max_epochs=max_epochs,
-        accelerator="gpu",
-        devices=1,
-        precision="bf16-mixed",
-        gradient_clip_val=1.0,
-        callbacks=[
-            L.callbacks.ModelCheckpoint(
-                dirpath=save_path,
-                filename="lora-{epoch:02d}-{val_loss:.4f}",
-                monitor="val_loss",
-                mode="min",
-                save_top_k=3
-            ),
-            L.callbacks.EarlyStopping(
-                monitor="val_loss",
-                patience=3,
-                mode="min"
-            )
-        ]
-    )
-    
-    trainer.fit(model, train_dataloader, val_dataloader)
-    
-    # Save final LoRA weights
-    model.save_lora(f"{save_path}/final_lora")
-    
-    return model, trainer

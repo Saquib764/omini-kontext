@@ -1,134 +1,166 @@
-#!/usr/bin/env python3
-"""
-Training script for Flux Omini Kontext model with YAML configuration support.
-"""
-
-import os
-import sys
-import argparse
+from torch.utils.data import DataLoader
+import torch
 import lightning as L
-from pathlib import Path
+import yaml
+import os
+import time
+from huggingface_hub import login
+from datasets import load_dataset
 
-# Add the src directory to the path
-sys.path.append(str(Path(__file__).parent.parent))
 
-from model import FluxOminiKontextModel
-from config import load_config_from_env, setup_environment_from_config
-from data import create_dataloaders
+from huggingface_hub import login, hf_hub_download
+
+
+from .data import (
+    load_and_concatenate_datasets,
+    FluxOminiKontextDataset,
+)
+from .model import FluxOminiKontextModel
+from .callbacks import TrainingCallback
+
+torch.set_float32_matmul_precision('medium')
+
+def get_rank():
+    try:
+        rank = int(os.environ.get("LOCAL_RANK"))
+    except:
+        rank = 0
+    return rank
+
+
+def get_config():
+    config_path = os.environ.get("XFL_CONFIG")
+    assert config_path is not None, "Please set the XFL_CONFIG environment variable"
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+def init_wandb(wandb_config, run_name):
+    import wandb
+
+    try:
+        assert os.environ.get("WANDB_API_KEY") is not None
+        wandb.init(
+            project=wandb_config["project"],
+            name=run_name,
+            config={},
+        )
+    except Exception as e:
+        print("Failed to initialize WanDB:", e)
 
 
 def main():
-    """Main training function"""
-    parser = argparse.ArgumentParser(description="Train Flux Omini Kontext model")
-    parser.add_argument("--config", type=str, help="Path to config file (overrides XFL_CONFIG)")
-    parser.add_argument("--resume", type=str, help="Resume from checkpoint")
-    args = parser.parse_args()
+    # Initialize
+    is_main_process, rank = get_rank() == 0, get_rank()
+    torch.cuda.set_device(rank)
+    config = get_config()
+    training_config = config["train"]
+    run_name = time.strftime("%Y%m%d-%H%M%S")
+
+    # Initialize WanDB
+    wandb_config = training_config.get("wandb", None)
+    if wandb_config is not None and is_main_process:
+        init_wandb(wandb_config, run_name)
+
+    print("Rank:", rank)
+    if is_main_process:
+        print("Config:", config)
+
+    # Initialize dataset and dataloader
     
-    # Load configuration
-    if args.config:
-        os.environ['XFL_CONFIG'] = args.config
-    
-    try:
-        config = load_config_from_env()
-        setup_environment_from_config(config)
-    except Exception as e:
-        print(f"Error loading configuration: {e}")
-        sys.exit(1)
-    
-    print(f"Using configuration from: {config.config_path}")
-    
-    # Extract configurations
-    model_config = config.get_model_config()
-    lora_config = config.get_lora_config()
-    optimizer_config = config.get_optimizer_config()
-    training_config = config.get_training_config()
-    data_config = config.get_data_config()
-    logging_config = config.get_logging_config()
-    hardware_config = config.get_hardware_config()
-    
-    # Create model
-    print("Initializing model...")
-    model = FluxOminiKontextModel(
-        flux_pipe_id=model_config.get('flux_pipe_id', 'black-forest-labs/FLUX.1-Kontext-dev'),
-        lora_config=lora_config,
-        device=model_config.get('device', 'cuda'),
-        dtype=getattr(torch, model_config.get('dtype', 'bfloat16')),
-        model_config=model_config,
-        optimizer_config=optimizer_config,
-        gradient_checkpointing=model_config.get('gradient_checkpointing', False),
+    # dataset = load_and_concatenate_datasets(
+    #     dataset_names=["saquiboye/cartoon-incontext-v2", "saquiboye/person-cloth-original-v2"],
+    #     source_field_values=["cartoon", "person"],
+    #     source_field_name="source_tags",
+    #     split="train"
+    # )['train']
+    dataset = FluxOminiKontextDataset(
+        # dataset,
+        # condition_size=training_config["dataset"]["condition_size"],
+        # target_size=training_config["dataset"]["target_size"],
+        # image_size=training_config["dataset"]["image_size"],
+        # padding=training_config["dataset"]["padding"],
+        # condition_type=training_config["condition_type"],
+        # drop_text_prob=training_config["dataset"]["drop_text_prob"],
+        # drop_image_prob=training_config["dataset"]["drop_image_prob"],
     )
-    
-    # Create dataloaders
-    print("Creating dataloaders...")
-    train_dataloader, val_dataloader = create_dataloaders(
-        train_data_path=data_config.get('train_data_path', './data/train'),
-        val_data_path=data_config.get('val_data_path', './data/val'),
-        batch_size=training_config.get('batch_size', 2),
-        num_workers=data_config.get('num_workers', 2),
-        pin_memory=data_config.get('pin_memory', True),
+
+    print("Dataset length:", len(dataset))
+    train_loader = DataLoader(
+        dataset,
+        batch_size=training_config["batch_size"],
+        shuffle=True,
+        num_workers=training_config["dataloader_workers"],
     )
-    
-    # Setup callbacks
-    callbacks = []
-    
-    # Model checkpoint callback
-    save_path = logging_config.get('save_path', './lora_weights')
-    os.makedirs(save_path, exist_ok=True)
-    
-    checkpoint_callback = L.callbacks.ModelCheckpoint(
-        dirpath=save_path,
-        filename="lora-{epoch:02d}-{val_loss:.4f}",
-        monitor="val_loss",
-        mode="min",
-        save_top_k=logging_config.get('save_top_k', 3),
-        save_last=True,
+
+    lora_path = None
+
+    if training_config['resume_training_from_last_checkpoint'] and os.path.exists(f"{training_config['save_path']}"):
+        # get latest directory in training_config['save_path'], ignore hidden files
+        all_training_sessions = [d for d in os.listdir(training_config['save_path']) if not d.startswith('.')]
+        all_training_sessions.sort(reverse=True)
+        last_training_session = all_training_sessions[0]
+        if os.path.exists(f"{training_config['save_path']}/{last_training_session}/ckpt"):
+            ckpt_paths = [d for d in os.listdir(f"{training_config['save_path']}/{last_training_session}/ckpt") if not d.startswith('.')]
+            ckpt_paths.sort(reverse=True)
+            lora_path = f"{training_config['save_path']}/{last_training_session}/ckpt/{ckpt_paths[0]}"
+            print(f"Resuming training from {lora_path}")
+        else:
+            print("No checkpoint found. Training without LoRA weights.")
+
+    elif training_config['resume_training_from_checkpoint_path'] != "":
+        _lora_path = training_config['resume_training_from_checkpoint_path']
+        # Check if the path exists
+        if os.path.exists(_lora_path):
+            lora_path = _lora_path
+            print(f"Training with LoRA weights from {_lora_path}")
+        else:
+            print(f"Path {_lora_path} does not exist. Training without LoRA weights.")
+
+    # Initialize model
+    trainable_model = FluxOminiKontextModel(
+        flux_pipe_id=config["flux_path"],
+        lora_path = lora_path,
+        lora_config=training_config["lora_config"],
+        device=f"cuda",
+        dtype=getattr(torch, config["dtype"]),
+        optimizer_config=training_config["optimizer"],
+        model_config=config.get("model", {}),
+        gradient_checkpointing=training_config.get("gradient_checkpointing", False),
     )
-    callbacks.append(checkpoint_callback)
-    
-    # Early stopping callback
-    early_stopping_callback = L.callbacks.EarlyStopping(
-        monitor="val_loss",
-        patience=logging_config.get('early_stopping_patience', 3),
-        mode="min",
+
+    # Callbacks for logging and saving checkpoints
+    training_callbacks = (
+        [TrainingCallback(run_name, training_config=training_config)]
+        if is_main_process
+        else []
     )
-    callbacks.append(early_stopping_callback)
-    
-    # Learning rate monitor
-    lr_monitor = L.callbacks.LearningRateMonitor(logging_interval='step')
-    callbacks.append(lr_monitor)
-    
-    # Setup trainer
+
+    # Initialize trainer
     trainer = L.Trainer(
-        max_epochs=training_config.get('max_epochs', 10),
-        accelerator=training_config.get('accelerator', 'gpu'),
-        devices=training_config.get('devices', 1),
-        precision=training_config.get('precision', 'bf16-mixed'),
-        gradient_clip_val=training_config.get('gradient_clip_val', 1.0),
-        callbacks=callbacks,
-        log_every_n_steps=logging_config.get('log_every_n_steps', 10),
-        val_check_interval=logging_config.get('val_every_n_epochs', 1.0),
-        enable_progress_bar=True,
-        enable_model_summary=True,
-        deterministic=False,
+        accumulate_grad_batches=training_config["accumulate_grad_batches"],
+        callbacks=training_callbacks,
+        enable_checkpointing=False,
+        enable_progress_bar=False,
+        logger=False,
+        max_steps=training_config.get("max_steps", -1),
+        max_epochs=training_config.get("max_epochs", -1),
+        gradient_clip_val=training_config.get("gradient_clip_val", 0.5),
     )
-    
-    # Train the model
-    print("Starting training...")
-    trainer.fit(
-        model, 
-        train_dataloaders=train_dataloader, 
-        val_dataloaders=val_dataloader,
-        ckpt_path=args.resume
-    )
-    
-    # Save final LoRA weights
-    final_save_path = os.path.join(save_path, "final_lora")
-    print(f"Saving final LoRA weights to: {final_save_path}")
-    model.save_lora(final_save_path)
-    
-    print("Training completed successfully!")
+
+    setattr(trainer, "training_config", training_config)
+
+    # Save config
+    save_path = training_config.get("save_path", "./output")
+    if is_main_process:
+        os.makedirs(f"{save_path}/{run_name}")
+        with open(f"{save_path}/{run_name}/config.yaml", "w") as f:
+            yaml.dump(config, f)
+
+    # Start training
+    trainer.fit(trainable_model, train_loader)
 
 
 if __name__ == "__main__":
-    import torch
-    main() 
+    main()

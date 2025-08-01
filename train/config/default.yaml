@@ -1,67 +1,46 @@
-# Flux Omini Kontext Training Configuration
-# Default configuration template
+flux_path: "black-forest-labs/FLUX.1-Kontext-dev"
+dtype: "bfloat16"
 
-# Model Configuration
-model:
-  flux_pipe_id: "black-forest-labs/FLUX.1-Kontext-dev"
-  device: "cuda"
-  dtype: "bfloat16"
-  gradient_checkpointing: true
 
-# LoRA Configuration
-lora:
-  r: 16
-  lora_alpha: 32
-  target_modules: ["to_q", "to_k", "to_v", "to_out.0"]
-  lora_dropout: 0.1
-  bias: "none"
-  task_type: "CAUSAL_LM"
+train:
+  batch_size: 1
+  accumulate_grad_batches: 1
+  dataloader_workers: 5
+  save_interval: 1000
+  sample_interval: 100
+  max_steps: -1
+  gradient_checkpointing: false
+  save_path: "runs"
 
-# Optimizer Configuration
-optimizer:
-  type: "AdamW"
-  params:
-    lr: 1e-4
-    weight_decay: 0.01
-    betas: [0.9, 0.999]
+  condition_type: "subject"
 
-# Training Configuration
-training:
-  max_epochs: 10
-  batch_size: 2
-  gradient_clip_val: 1.0
-  precision: "bf16-mixed"
-  accelerator: "gpu"
-  devices: 1
+  resume_training_from_last_checkpoint: false
+  # Ignored if resume_training_from_last_checkpoint = true. 
+  # Ignored if path does not exist.
+  resume_training_from_checkpoint_path: "runs/20250127-114531/ckpt/1000"
 
-# Data Configuration
-data:
-  train_data_path: "./data/train"
-  val_data_path: "./data/val"
-  num_workers: 2
-  pin_memory: true
+  dataset:
+    init_size: 512
+    reference_size: 512
+    target_size: 512
+    image_size: 512
+    padding: 8
+    drop_text_prob: 0.1
+    drop_image_prob: 0.1
 
-# Logging and Checkpointing
-logging:
-  save_path: "./lora_weights/default"
-  log_every_n_steps: 10
-  val_every_n_epochs: 1
-  save_top_k: 3
-  early_stopping_patience: 3
+  wandb:
+    project: "OminiKontextControl"
 
-# Hardware Configuration
-hardware:
-  cuda_visible_devices: "0"
-  main_process_port: 41353
-  tokenizers_parallelism: true
+  lora_config:
+    r: 24
+    lora_alpha: 24
+    init_lora_weights: "gaussian"
+    target_modules: "(.*x_embedder|.*transformer_blocks\\.[0-9]+\\.(norm|norm1)\\.linear|.*transformer_blocks\\.[0-9]+\\.attn\\.(to_k|to_q|to_v|to_add_out)|.*transformer_blocks\\.[0-9]+\\.attn\\.to_out\\.0|.*single_transformer_blocks\\.[0-9]+\\.attn\\.to_out|.*single_transformer_blocks\\.[0-9]+\\.(proj_mlp|proj_out)|.*(?<!single_)transformer_blocks\\.[0-9]+\\.ff\\.net\\.2|.*(?<!single_)transformer_blocks\\.[0-9]+\\.ff\\.net\\.0\\.proj|.*(?<!single_)transformer_blocks\\.[0-9]+\\.norm1_context\\.linear|.*(?<!single_)transformer_blocks\\.[0-9]+\\.ff_context\\.net\\.0\\.proj|.*(?<!single_)transformer_blocks\\.[0-9]+\\.ff_context\\.net\\.2|.*(?<!single_)transformer_blocks\\.[0-9]+\\.attn\\.(to_add_out|add_k_proj|add_q_proj|add_v_proj))"
 
-# Cache Configuration
-cache:
-  hf_hub_cache: "./cache"
-
-# WandB Configuration (optional)
-wandb:
-  enabled: false
-  project_name: "flux-omini-kontext"
-  run_name: "default_training"
-  api_key: null 
+  optimizer:
+    type: "Prodigy"
+    params:
+      lr: 1
+      use_bias_correction: true
+      safeguard_warmup: true
+      weight_decay: 0.01
