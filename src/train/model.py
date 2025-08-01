@@ -173,6 +173,7 @@ class FluxOminiKontextModel(L.LightningModule):
                     joint_attention_kwargs=self.joint_attention_kwargs,
                     return_dict=False,
                 )[0]
+        pred = pred[:, : x_t.size(1)]
 
         # Compute loss
         loss = torch.nn.functional.mse_loss(pred, (x_1 - x_0), reduction="mean")
