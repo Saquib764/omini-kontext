@@ -7,6 +7,21 @@
 
 A comprehensive Lightning-based training framework for fine-tuning the Flux Omini Kontext pipeline using LoRA (Low-Rank Adaptation). This project enables efficient training of multi-image diffusion models that can generate images from input images, reference images, and text prompts.
 
+
+## 🎨 Generated Samples
+
+### Character Insertion
+
+The following examples demonstrate how the trained model can insert cartoon characters into existing scenes:
+
+| Scene | Reference Character | Generated Result |
+|-------|-------------------|------------------|
+| ![Scene 1](assets/scene_01.png) | ![Boy Reference](assets/boy_reference_512.png) | ![Output 1](assets/output_01.png) |
+| ![Scene 2](assets/scene_02.png) | ![Boy Reference](assets/boy_reference_512.png) | ![Output 2](assets/output_02.png) |
+
+
+More comming soon!
+
 ## 🌟 Features
 
 - **🚀 Lightning-based Training**: Built on PyTorch Lightning for scalable and efficient training
@@ -226,43 +241,13 @@ See `examples/character_insert.ipynb` for a complete example of inserting charac
 
 **Trained Model**: Check out the [omini-kontext-character](https://huggingface.co/saquiboye/omini-kontext-character) model on Hugging Face, which is specifically trained to insert cartoon characters into existing scenes.
 
-## 🎨 Generated Samples
-
-### Character Insertion
-
-The following examples demonstrate how the trained model can insert cartoon characters into existing scenes:
-
-| Scene | Reference Character | Generated Result |
-|-------|-------------------|------------------|
-| ![Scene 1](assets/scene_01.png) | ![Boy Reference](assets/boy_reference_512.png) | ![Output 1](assets/output_01.png) |
-| ![Scene 2](assets/scene_02.png) | ![Boy Reference](assets/boy_reference_512.png) | ![Output 2](assets/output_02.png) |
-
-### Custom Style Training
-
-```python
-# Train on custom style dataset
-from src.pipeline_flux_omini_kontext import FluxOminiKontextPipeline
-
-# Load base model
-pipe = FluxOminiKontextPipeline.from_pretrained(
-    "black-forest-labs/FLUX.1-Kontext-dev"
-)
-
-# Train with custom data
-# (See train/README.md for detailed training instructions)
-```
 
 ## 🏗️ Model Architecture
 
 The Flux Omini Kontext pipeline consists of several key components:
 
-### Core Components
-
-- **FluxTransformer2DModel**: Main diffusion transformer
-- **AutoencoderKL**: VAE for image encoding/decoding
-- **CLIPTextModel**: Text encoder for prompts
-- **T5EncoderModel**: Secondary text encoder
-- **CLIPVisionModelWithProjection**: Image encoder for reference images
+### Base model
+Flux Kontext dev model
 
 ### LoRA Integration
 
