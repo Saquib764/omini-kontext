@@ -114,13 +114,6 @@ class FluxOminiKontextModel(L.LightningModule):
         target_images = batch["target_image"]  # Target image
         prompts = batch["prompt"]  # Text prompt
         reference_deltas = batch.get("reference_delta", [[0, 0]])  # Position delta for reference
-        
-        # INSERT_YOUR_CODE
-        for k, v in batch.items():
-            if hasattr(v, "shape"):
-                print(f"batch['{k}'] shape: {v.shape}")
-            else:
-                print(f"batch['{k}'] type: {type(v)}")
 
         # Prepare inputs
         with torch.no_grad():
