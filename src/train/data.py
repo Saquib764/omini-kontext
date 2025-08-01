@@ -117,8 +117,8 @@ class FluxOminiKontextDataset(Dataset):
         self.reference_files = []
         self.target_files = []
 
-        root = '../../data'
-        for f in os.listdir('../data/start'):
+        root = 'data'
+        for f in os.listdir(f'{root}/start'):
             if not (os.path.isfile(os.path.join(root, f)) and f.lower().endswith(('.jpg', '.jpeg', '.png', '.gif'))):
                 continue
             self.init_files.append(os.path.join(f"{root}/start", f))
