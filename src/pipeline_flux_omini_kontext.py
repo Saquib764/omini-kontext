@@ -710,8 +710,6 @@ class FluxOminiKontextPipeline(
         delta: List[int],
         batch_size: int,
         num_channels_latents: int,
-        height: int,
-        width: int,
         dtype: torch.dtype,
         device: torch.device,
         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
@@ -721,11 +719,6 @@ class FluxOminiKontextPipeline(
                 f"You have passed a list of generators of length {len(generator)}, but requested an effective batch"
                 f" size of {batch_size}. Make sure the batch size matches the length of the generators."
             )
-
-        # VAE applies 8x compression on images but we must also account for packing which requires
-        # latent height and width to be divisible by 2.
-        height = 2 * (int(height) // (self.vae_scale_factor * 2))
-        width = 2 * (int(width) // (self.vae_scale_factor * 2))
 
         image_latents = image_ids = None
         if image is not None:
@@ -1064,8 +1057,6 @@ class FluxOminiKontextPipeline(
             reference_delta,
             batch_size * num_images_per_prompt,
             num_channels_latents,
-            height,
-            width,
             prompt_embeds.dtype,
             device,
             generator,

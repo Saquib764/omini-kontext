@@ -100,7 +100,17 @@ class TrainingCallback(L.Callback):
             .convert("RGB")
         )
         init_img = (
-            Image.open("assets/boy_scene_big.png")
+            Image.open("assets/scene_01.png")
+            .convert("RGB")
+        )
+        test_list.append((init_img, reference_img, [0, (1024 + 512)//16], "Add the character to the image"))
+
+        reference_img = (
+            Image.open("assets/boy_reference_512.png")
+            .convert("RGB")
+        )
+        init_img = (
+            Image.open("assets/scene_02.png")
             .convert("RGB")
         )
         test_list.append((init_img, reference_img, [0, (1024 + 512)//16], "Add the character to the image"))
@@ -110,13 +120,15 @@ class TrainingCallback(L.Callback):
             os.makedirs(save_path)
         for i, (init_img, reference_img, reference_delta, prompt) in enumerate(test_list):
             pipe = pl_module.flux_pipe
-
+            width, height = init_img.size
             res = pipe(
                 prompt=prompt,
                 image=init_img,
                 reference=reference_img,
                 reference_delta=reference_delta,
                 num_inference_steps=25,
+                height=height,
+                width=width,
             )
             # save the condition image
             init_img.save(

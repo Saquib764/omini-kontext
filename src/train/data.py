@@ -137,7 +137,7 @@ class FluxOminiKontextDataset(Dataset):
         reference_image_path = self.reference_files[idx]
 
         input_image = Image.open(input_image_path).resize((960, 512)).convert("RGB")
-        target_image = Image.open(target_image_path).resize((960, 512)).convert("RGB")
+        target_image = Image.open(target_image_path).resize((896, 512)).convert("RGB")
         reference_image = Image.open(reference_image_path).resize((512, 512)).convert("RGB")
 
         prompt = "add the character to the image"
