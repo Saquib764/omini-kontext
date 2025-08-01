@@ -1049,9 +1049,6 @@ class FluxOminiKontextPipeline(
         if image_ids is not None:
             latent_ids = torch.cat([latent_ids, image_ids], dim=0)  # dim 0 is sequence dimension
 
-        print("image_latents", image_latents.shape)
-        print("latent_ids", latent_ids.shape)
-
         # 4.5 Preprocess condition
         if reference is not None:
             ref = reference[0] if isinstance(reference, list) else reference
@@ -1080,10 +1077,6 @@ class FluxOminiKontextPipeline(
             else:
                 image_latents = reference_latents
         
-        print("reference_latents", reference_latents.shape)
-        print("reference_ids", reference_ids.shape)
-        print("image_latents", image_latents.shape)
-        print("latent_ids", latent_ids.shape)
         # 5. Prepare timesteps
         sigmas = np.linspace(1.0, 1 / num_inference_steps, num_inference_steps) if sigmas is None else sigmas
         image_seq_len = latents.shape[1]

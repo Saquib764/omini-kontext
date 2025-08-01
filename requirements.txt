@@ -1,0 +1,11 @@
+torch>=2.0.0
+lightning>=2.0.0
+diffusers>=0.25.0
+transformers>=4.35.0
+peft>=0.7.0
+prodigyopt>=1.0.0
+Pillow>=9.0.0
+numpy>=1.21.0
+accelerate>=0.20.0
+safetensors>=0.3.0
+PyYAML>=6.0 

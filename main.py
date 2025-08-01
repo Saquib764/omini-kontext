@@ -13,7 +13,7 @@ image = Image.open("assets/boy_scene_small.png")
 reference = Image.open("assets/boy_reference_256.png")
 
 
-prompt = "add a cat to the image"
+prompt = "add the character to the scene"
 result = pipe(
     image=image,
     reference=reference,

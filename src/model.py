@@ -1,0 +1,271 @@
+import lightning as L
+from diffusers.pipelines import FluxOminiKontextPipeline
+import torch
+from peft import LoraConfig, get_peft_model_state_dict
+import prodigyopt
+from typing import Dict, List, Optional, Union
+import numpy as np
+
+# Import local modules
+from pipeline_flux_omini_kontext import FluxOminiKontextPipeline
+from flux.transformer import tranformer_forward
+from flux.condition import Condition
+from flux.pipeline_tools import encode_images, prepare_text_input
+
+
+class FluxOminiKontextModel(L.LightningModule):
+    def __init__(
+        self,
+        flux_pipe_id: str,
+        lora_path: str = None,
+        lora_config: dict = None,
+        device: str = "cuda",
+        dtype: torch.dtype = torch.bfloat16,
+        model_config: dict = {},
+        optimizer_config: dict = None,
+        gradient_checkpointing: bool = False,
+    ):
+        # Initialize the LightningModule
+        super().__init__()
+        self.model_config = model_config
+        self.optimizer_config = optimizer_config
+
+        # Load the Flux Omini Kontext pipeline
+        self.flux_pipe: FluxOminiKontextPipeline = (
+            FluxOminiKontextPipeline.from_pretrained(flux_pipe_id).to(dtype=dtype).to(device)
+        )
+        self.transformer = self.flux_pipe.transformer
+        self.transformer.gradient_checkpointing = gradient_checkpointing
+        self.transformer.train()
+
+        # Freeze the Flux pipeline components
+        self.flux_pipe.text_encoder.requires_grad_(False).eval()
+        self.flux_pipe.text_encoder_2.requires_grad_(False).eval()
+        self.flux_pipe.vae.requires_grad_(False).eval()
+        if hasattr(self.flux_pipe, 'image_encoder'):
+            self.flux_pipe.image_encoder.requires_grad_(False).eval()
+
+        # Initialize LoRA layers
+        self.lora_layers = self.init_lora(lora_path, lora_config)
+
+        # Initialize joint attention kwargs
+        self.joint_attention_kwargs = {}
+
+        self.to(device).to(dtype)
+
+    def init_lora(self, lora_path: str, lora_config: dict):
+        assert lora_path or lora_config
+        if lora_path:
+            self.flux_pipe.load_lora_weights(lora_path, adapter_name="default")
+            # Get trainable parameters (LoRA layers)
+            lora_layers = filter(
+                lambda p: p.requires_grad, self.transformer.parameters()
+            )
+        else:
+            self.transformer.add_adapter(LoraConfig(**lora_config))
+            # Get trainable parameters (LoRA layers)
+            lora_layers = filter(
+                lambda p: p.requires_grad, self.transformer.parameters()
+            )
+        return list(lora_layers)
+
+    def save_lora(self, path: str):
+        FluxOminiKontextPipeline.save_lora_weights(
+            save_directory=path,
+            transformer_lora_layers=get_peft_model_state_dict(self.transformer),
+            safe_serialization=True,
+        )
+
+    def configure_optimizers(self):
+        # Freeze the transformer
+        self.transformer.requires_grad_(False)
+        opt_config = self.optimizer_config
+
+        # Set the trainable parameters
+        self.trainable_params = self.lora_layers
+
+        # Unfreeze trainable parameters
+        for p in self.trainable_params:
+            p.requires_grad_(True)
+
+        # Initialize the optimizer
+        if opt_config["type"] == "AdamW":
+            optimizer = torch.optim.AdamW(self.trainable_params, **opt_config["params"])
+        elif opt_config["type"] == "Prodigy":
+            optimizer = prodigyopt.Prodigy(
+                self.trainable_params,
+                **opt_config["params"],
+            )
+        elif opt_config["type"] == "SGD":
+            optimizer = torch.optim.SGD(self.trainable_params, **opt_config["params"])
+        else:
+            raise NotImplementedError
+
+        return optimizer
+
+    def training_step(self, batch, batch_idx):
+        step_loss = self.step(batch)
+        self.log_loss = (
+            step_loss.item()
+            if not hasattr(self, "log_loss")
+            else self.log_loss * 0.95 + step_loss.item() * 0.05
+        )
+        return step_loss
+
+    def step(self, batch):
+        # Extract inputs from batch
+        input_images = batch["input_image"]  # Main input image
+        reference_images = batch["reference_image"]  # Reference image
+        target_images = batch["target_image"]  # Target image
+        prompts = batch["prompt"]  # Text prompt
+        reference_deltas = batch.get("reference_delta", [[0, 0]])  # Position delta for reference
+        
+
+        # Prepare inputs
+        with torch.no_grad():
+            # Prepare input image
+            x_0, x_ids = encode_images(self.flux_pipe, target_images)
+          
+            x_init, init_img_ids = encode_images(self.flux_pipe, input_images)
+            # Prepare reference image with delta
+            x_ref, ref_img_ids = encode_images(self.flux_pipe, reference_images)
+            
+            # Apply position delta to reference image IDs
+            if reference_deltas and len(reference_deltas) > 0:
+                delta = reference_deltas[0] if isinstance(reference_deltas[0], list) else reference_deltas
+                ref_img_ids[:, 1] += delta[0]
+                ref_img_ids[:, 2] += delta[1]
+
+            # Combine input and reference images
+            condition = torch.cat([x_init, x_ref], dim=1)
+            condition_ids = torch.cat([init_img_ids, ref_img_ids], dim=0)
+
+            # Prepare text input
+            prompt_embeds, pooled_prompt_embeds, text_ids = prepare_text_input(
+                self.flux_pipe, prompts
+            )
+
+            # Prepare t and x_t
+            t = torch.rand((input_images.shape[0],), device=self.device)**2
+            x_1 = torch.randn_like(x_0).to(self.device)
+            t_ = t.unsqueeze(1).unsqueeze(1)
+            x_t = ((1 - t_) * x_0 + t_ * x_1).to(self.dtype)
+
+            latent_model_input = torch.cat([x_t, condition], dim=1)
+            latent_ids = torch.cat([x_ids, condition_ids], dim=0)
+
+            # Prepare guidance
+            guidance = (
+                torch.ones_like(t).to(self.device)
+                if self.transformer.config.guidance_embeds
+                else None
+            )
+
+        # Forward pass
+        pred = self.transformer(
+                    hidden_states=latent_model_input,
+                    timestep=t,
+                    guidance=guidance,
+                    pooled_projections=pooled_prompt_embeds,
+                    encoder_hidden_states=prompt_embeds,
+                    txt_ids=text_ids,
+                    img_ids=latent_ids,
+                    joint_attention_kwargs=self.joint_attention_kwargs,
+                    return_dict=False,
+                )[0]
+
+        # Compute loss
+        loss = torch.nn.functional.mse_loss(pred, (x_1 - x_0), reduction="mean")
+        self.last_t = t.mean().item()
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        # Similar to training step but for validation
+        with torch.no_grad():
+            loss = self.step(batch)
+            self.log("val_loss", loss, prog_bar=True)
+        return loss
+
+    def on_train_epoch_end(self):
+        # Log training loss at the end of each epoch
+        self.log("train_loss", self.log_loss, prog_bar=True)
+
+    def on_save_checkpoint(self, checkpoint):
+        # Save LoRA weights when checkpoint is saved
+        if hasattr(self, 'save_lora'):
+            # You can implement custom saving logic here
+            pass
+
+    def forward(self, batch):
+        # Forward pass for inference
+        return self.step(batch)
+
+
+# Example usage and configuration
+def create_model_config():
+    """Create a default model configuration"""
+    return {
+        "flux_pipe_id": "black-forest-labs/FLUX.1-Kontext-dev",
+        "lora_config": {
+            "r": 16,
+            "lora_alpha": 32,
+            "target_modules": ["to_q", "to_k", "to_v", "to_out.0"],
+            "lora_dropout": 0.1,
+            "bias": "none",
+            "task_type": "CAUSAL_LM"
+        },
+        "optimizer_config": {
+            "type": "AdamW",
+            "params": {
+                "lr": 1e-4,
+                "weight_decay": 0.01,
+                "betas": (0.9, 0.999)
+            }
+        },
+        "model_config": {},
+        "gradient_checkpointing": True
+    }
+
+
+# Example training script
+def train_model(
+    train_dataloader,
+    val_dataloader=None,
+    config=None,
+    max_epochs=10,
+    save_path="./lora_weights"
+):
+    """Train the Flux Omini Kontext LoRA model"""
+    if config is None:
+        config = create_model_config()
+    
+    model = FluxOminiKontextModel(**config)
+    
+    trainer = L.Trainer(
+        max_epochs=max_epochs,
+        accelerator="gpu",
+        devices=1,
+        precision="bf16-mixed",
+        gradient_clip_val=1.0,
+        callbacks=[
+            L.callbacks.ModelCheckpoint(
+                dirpath=save_path,
+                filename="lora-{epoch:02d}-{val_loss:.4f}",
+                monitor="val_loss",
+                mode="min",
+                save_top_k=3
+            ),
+            L.callbacks.EarlyStopping(
+                monitor="val_loss",
+                patience=3,
+                mode="min"
+            )
+        ]
+    )
+    
+    trainer.fit(model, train_dataloader, val_dataloader)
+    
+    # Save final LoRA weights
+    model.save_lora(f"{save_path}/final_lora")
+    
+    return model, trainer

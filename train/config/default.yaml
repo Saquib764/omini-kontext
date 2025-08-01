@@ -1,0 +1,67 @@
+# Flux Omini Kontext Training Configuration
+# Default configuration template
+
+# Model Configuration
+model:
+  flux_pipe_id: "black-forest-labs/FLUX.1-Kontext-dev"
+  device: "cuda"
+  dtype: "bfloat16"
+  gradient_checkpointing: true
+
+# LoRA Configuration
+lora:
+  r: 16
+  lora_alpha: 32
+  target_modules: ["to_q", "to_k", "to_v", "to_out.0"]
+  lora_dropout: 0.1
+  bias: "none"
+  task_type: "CAUSAL_LM"
+
+# Optimizer Configuration
+optimizer:
+  type: "AdamW"
+  params:
+    lr: 1e-4
+    weight_decay: 0.01
+    betas: [0.9, 0.999]
+
+# Training Configuration
+training:
+  max_epochs: 10
+  batch_size: 2
+  gradient_clip_val: 1.0
+  precision: "bf16-mixed"
+  accelerator: "gpu"
+  devices: 1
+
+# Data Configuration
+data:
+  train_data_path: "./data/train"
+  val_data_path: "./data/val"
+  num_workers: 2
+  pin_memory: true
+
+# Logging and Checkpointing
+logging:
+  save_path: "./lora_weights/default"
+  log_every_n_steps: 10
+  val_every_n_epochs: 1
+  save_top_k: 3
+  early_stopping_patience: 3
+
+# Hardware Configuration
+hardware:
+  cuda_visible_devices: "0"
+  main_process_port: 41353
+  tokenizers_parallelism: true
+
+# Cache Configuration
+cache:
+  hf_hub_cache: "./cache"
+
+# WandB Configuration (optional)
+wandb:
+  enabled: false
+  project_name: "flux-omini-kontext"
+  run_name: "default_training"
+  api_key: null 
