@@ -1,4 +1,3 @@
-diffusers==0.31.0
 transformers
 peft
 opencv-python
