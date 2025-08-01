@@ -22,6 +22,23 @@ The following examples demonstrate how the trained model can insert cartoon char
 
 More comming soon!
 
+
+## 📋 To-do
+
+- [ ] **Add ways to control location and scale of the reference character**
+- [ ] **Speed up by removing irrelevant pixels**
+- [ ] **Deploy a public demo**
+- [ ] **Deploy a replicate version**
+- [x] **Basic training script**
+- [x] **Basic inference script**
+
+### Model Plans
+- [ ] **Person Models**: Develop models for realistic human subjects
+- [ ] **Clothes Models**: Create models for clothing and fashion items
+- [ ] **Subject Models**: Train models for specific objects and items
+- [x] **Character Models**: Train specialized models for anime/cartoon characters
+
+
 ## 🌟 Features
 
 - **🚀 Lightning-based Training**: Built on PyTorch Lightning for scalable and efficient training
@@ -299,21 +316,6 @@ lora_config = {
 | `gradient_accumulation_steps` | int | 1 | Gradient accumulation steps |
 | `warmup_steps` | int | 100 | Learning rate warmup steps |
 
-
-## 📋 To-do
-
-- [ ] **Add ways to control location and scale of the reference character**
-- [ ] **Speed up by removing irrelevant pixels**
-- [ ] **Deploy a public demo**
-- [ ] **Deploy a replicate version**
-- [x] **Basic training script**
-- [x] **Basic inference script**
-
-### Model Plans
-- [ ] **Person Models**: Develop models for realistic human subjects
-- [ ] **Clothes Models**: Create models for clothing and fashion items
-- [ ] **Subject Models**: Train models for specific objects and items
-- [x] **Character Models**: Train specialized models for anime/cartoon characters
 
 ## 🤝 Contributing
 
