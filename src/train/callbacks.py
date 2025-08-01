@@ -78,10 +78,7 @@ class TrainingCallback(L.Callback):
                 trainer,
                 pl_module,
                 f"{self.save_path}/{self.run_name}/output",
-                f"lora_{self.total_steps}",
-                batch["condition_type"][
-                    0
-                ],  # Use the condition type from the current batch
+                f"lora_{self.total_steps}"
             )
             print("saving model: ", f"{self.save_path}/{self.run_name}/output/lora_{self.total_steps}.safetensors")
 
