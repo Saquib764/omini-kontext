@@ -39,8 +39,6 @@ class FluxOminiKontextModel(L.LightningModule):
         self.flux_pipe.text_encoder.requires_grad_(False).eval()
         self.flux_pipe.text_encoder_2.requires_grad_(False).eval()
         self.flux_pipe.vae.requires_grad_(False).eval()
-        if hasattr(self.flux_pipe, 'image_encoder'):
-            self.flux_pipe.image_encoder.requires_grad_(False).eval()
 
         # Initialize LoRA layers
         self.lora_layers = self.init_lora(lora_path, lora_config)
