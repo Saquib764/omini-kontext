@@ -22,6 +22,18 @@ The following examples demonstrate how the trained model can insert cartoon char
 
 More comming soon!
 
+### Model Comparison
+
+The following table compares the performance of our trained Omini Kontext model against the vanilla FLUX.1-Kontext-dev model:
+
+| Scene | Reference | Vanilla | Omini |
+|-------|-----------|---------|-------|
+| ![Living Room](assets/comparison/living_room.webp) | ![Boy](assets/comparison/boy.webp) | ![Living Room Boy Vanilla](assets/comparison/results/living_room_boy_vanilla.webp) | ![Living Room Boy Omini](assets/comparison/results/living_room_boy_omini.webp) |
+| ![Living Room](assets/comparison/living_room.webp) | ![Dog](assets/comparison/dog.webp) | ![Living Room Dog Vanilla](assets/comparison/results/living_room_dog_vanilla.webp) | ![Living Room Dog Omini](assets/comparison/results/living_room_dog_omini.webp) |
+| ![Forest](assets/comparison/forest.webp) | ![Boy](assets/comparison/boy.webp) | ![Forest Boy Vanilla](assets/comparison/results/forest_boy_vanilla.webp) | ![Forest Boy Omini](assets/comparison/results/forest_boy_omini.webp) |
+| ![Forest](assets/comparison/forest.webp) | ![Girl](assets/comparison/girl.webp) | ![Forest Girl Vanilla](assets/comparison/results/forest_girl_vanilla.webp) | ![Forest Girl Omini](assets/comparison/results/forest_girl_omini.webp) |
+| ![Forest](assets/comparison/forest.webp) | ![Dog](assets/comparison/dog.webp) | ![Forest Dog Vanilla](assets/comparison/results/forest_dog_vanilla.webp) | ![Forest Dog Omini](assets/comparison/results/forest_dog_omini.webp) |
+
 
 ## 📋 To-do
 
