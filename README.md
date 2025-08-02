@@ -41,7 +41,7 @@ The following table compares the performance of our trained Omini Kontext model 
 - [ ] **Speed up by removing irrelevant pixels**
 - [ ] **Deploy a public demo**
 - [ ] **Deploy a replicate version**
-- [ ] **Add comfyUI integration**
+- [x] **Add comfyUI integration - Scroll to bottom**
 - [x] **Basic training script**
 - [x] **Basic inference script**
 
@@ -286,6 +286,12 @@ lora_config = {
 | `warmup_steps` | int | 100 | Learning rate warmup steps |
 
 
+### ComfyUI Integration
+
+Repo link - https://github.com/tercumantanumut/ComfyUI-Omini-Kontext
+
+Thanks to [tercumantanumut](https://github.com/tercumantanumut) for the ComfyUI integration!
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our contributing guidelines:
@@ -307,7 +313,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 - **PyTorch Lightning** for the training framework
 - **PEFT** for LoRA implementation
 - **[OminiControl](https://github.com/Yuanshi9815/OminiControl)** for the universal control framework for Diffusion Transformers
-
+- **[ComfyUI-Omini-Kontext](https://github.com/tercumantanumut/ComfyUI-Omini-Kontext)** for the ComfyUI integration
 ## 📚 References
 
 ```bibtex
