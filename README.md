@@ -66,26 +66,6 @@ pip install -r requirements.txt
 
 ### Basic Training
 
-```python
-from src.pipeline_flux_omini_kontext import FluxOminiKontextPipeline
-import torch
-
-# Initialize pipeline
-pipe = FluxOminiKontextPipeline.from_pretrained(
-    "black-forest-labs/FLUX.1-Kontext-dev",
-    torch_dtype=torch.bfloat16
-)
-pipe.to("cuda")
-
-# Generate image
-image = pipe(
-    image=input_image,
-    reference=reference_image,
-    reference_delta=[0, 0, 0],
-    prompt="Your text prompt here",
-    guidance_scale=3.5
-).images[0]
-```
 
 ## 📦 Installation
 
@@ -142,11 +122,18 @@ pipe.to("cuda")
 input_image = load_image("path/to/input.jpg")
 reference_image = load_image("path/to/reference.jpg")
 
+# Load Character OminiKontext LoRA
+pipe.load_lora_weights(
+    "saquiboye/omini-kontext-character",
+    weight_name="character_3000.safetensors",
+    adapter_name="lora_weights"
+)
+
 # Generate
 result = pipe(
     image=input_image,
     reference=reference_image,
-    reference_delta=[0, 0, 0],  # Position delta for reference
+    reference_delta=[0, 0, 96],  # Position delta for reference
     prompt="A beautiful landscape with mountains",
     guidance_scale=3.5,
     num_inference_steps=28
@@ -156,37 +143,6 @@ result = pipe(
 result.images[0].save("output.png")
 ```
 
-### Advanced Usage
-
-```python
-# Custom configuration
-pipe = FluxOminiKontextPipeline.from_pretrained(
-    "black-forest-labs/FLUX.1-Kontext-dev",
-    torch_dtype=torch.bfloat16,
-    use_safetensors=True
-)
-
-# Enable memory optimizations
-pipe.enable_vae_slicing()
-pipe.enable_vae_tiling()
-
-# Generate with custom parameters
-result = pipe(
-    image=input_image,
-    reference=reference_image,
-    reference_delta=[0, 32, 64],  # Offset reference by 32 token down, 64 tokens right
-    prompt="Your detailed prompt here",
-    prompt_2="Additional prompt for T5 encoder",
-    negative_prompt="blurry, low quality",
-    height=1024,
-    width=1024,
-    guidance_scale=4.0,
-    num_inference_steps=50,
-    generator=torch.Generator().manual_seed(42)
-)
-```
-
-**Note**: The `reference_delta` value is specific to the trained LoRA and depends on the settings used during training. The recommended value is calculated as `[0, 0, (1024 + 512) // 16]`. This formula accounts for the image dimensions and the model's internal scaling factor.
 
 ## 🛠️ Training
 

@@ -18,6 +18,7 @@ train:
   resume_training_from_checkpoint_path: "runs/20250127-114531/ckpt/1000"
 
   dataset:
+    src: "data/character"
     init_size: 512
     reference_size: 512
     target_size: 512

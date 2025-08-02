@@ -74,6 +74,7 @@ def main():
     #     split="train"
     # )['train']
     dataset = FluxOminiKontextDataset(
+        src=training_config["dataset"]["src"],
         delta=training_config["dataset"]["reference_delta"],
         # dataset,
         # condition_size=training_config["dataset"]["condition_size"],

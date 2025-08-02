@@ -112,13 +112,13 @@ if __name__ == "__main__":
 class FluxOminiKontextDataset(Dataset):
     """Example dataset for Flux Omini Kontext training"""
     
-    def __init__(self, delta: List[int] = [0, 0, 0]):
+    def __init__(self, src: str = 'data/character', delta: List[int] = [0, 0, 0]):
         self.init_files = []
         self.reference_files = []
         self.target_files = []
         self.delta = delta
 
-        root = 'data'
+        root = src
         for f in os.listdir(f'{root}/start'):
             if not (os.path.isfile(os.path.join(f'{root}/start', f)) and f.lower().endswith(('.jpg', '.jpeg', '.png', '.gif'))):
                 continue
