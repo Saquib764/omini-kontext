@@ -112,10 +112,11 @@ if __name__ == "__main__":
 class FluxOminiKontextDataset(Dataset):
     """Example dataset for Flux Omini Kontext training"""
     
-    def __init__(self):
+    def __init__(self, delta: List[int] = [0, 0, 0]):
         self.init_files = []
         self.reference_files = []
         self.target_files = []
+        self.delta = delta
 
         root = 'data'
         for f in os.listdir(f'{root}/start'):
@@ -141,7 +142,7 @@ class FluxOminiKontextDataset(Dataset):
         reference_image = Image.open(reference_image_path).resize((512, 512)).convert("RGB")
 
         prompt = "add the character to the image"
-        reference_delta = np.array([0, (1024 + 512)//16])
+        reference_delta = np.array(self.delta)
         return {
             "input_image": self.to_tensor(input_image),
             "target_image": self.to_tensor(target_image),

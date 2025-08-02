@@ -113,7 +113,7 @@ class FluxOminiKontextModel(L.LightningModule):
         reference_images = batch["reference_image"]  # Reference image
         target_images = batch["target_image"]  # Target image
         prompts = batch["prompt"]  # Text prompt
-        reference_deltas = batch.get("reference_delta", [[0, 0]])  # Position delta for reference
+        reference_deltas = batch.get("reference_delta", [[0, 0, 0]])  # Position delta for reference
 
         # Prepare inputs
         with torch.no_grad():
@@ -126,8 +126,9 @@ class FluxOminiKontextModel(L.LightningModule):
             
             # Apply position delta to reference image IDs
             delta = reference_deltas[0]
-            ref_img_ids[:, 1] += delta[0]
-            ref_img_ids[:, 2] += delta[1]
+            ref_img_ids[:, 0] += delta[0]
+            ref_img_ids[:, 1] += delta[1]
+            ref_img_ids[:, 2] += delta[2]
 
             # Combine input and reference images
             condition = torch.cat([x_init, x_ref], dim=1)

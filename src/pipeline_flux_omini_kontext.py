@@ -746,9 +746,9 @@ class FluxOminiKontextPipeline(
                 batch_size, image_latent_height // 2, image_latent_width // 2, device, dtype
             )
             # image ids are the same as latent ids with the first dimension set to 1 instead of 0
-            image_ids[..., 0] = 1
-            image_ids[..., 1] = image_ids[..., 1] + delta[0]
-            image_ids[..., 2] = image_ids[..., 2] + delta[1]
+            image_ids[..., 0] = 1 + delta[0]
+            image_ids[..., 1] = image_ids[..., 1] + delta[1]
+            image_ids[..., 2] = image_ids[..., 2] + delta[2]
 
         return image_latents, image_ids
 
@@ -778,7 +778,7 @@ class FluxOminiKontextPipeline(
         self,
         image: Optional[PipelineImageInput] = None,
         reference: Optional[PipelineImageInput] = None,
-        reference_delta: List[int] = [0, 0],
+        reference_delta: List[int] = [0, 0, 0],
         prompt: Union[str, List[str]] = None,
         prompt_2: Optional[Union[str, List[str]]] = None,
         negative_prompt: Union[str, List[str]] = None,
@@ -825,7 +825,7 @@ class FluxOminiKontextPipeline(
                 or tensors, the expected shape should be `(B, C, H, W)` or `(C, H, W)`. If it is a numpy array or a
                 list of arrays, the expected shape should be `(B, H, W, C)` or `(H, W, C)` It can also accept image
                 latents as `reference`, but if passing latents directly it is not encoded again.
-            reference_delta (`List[int]`, *optional*, defaults to [0, 0]):
+            reference_delta (`List[int]`, *optional*, defaults to [0, 0, 0]):
                 The delta to be added to the reference image ids.
             prompt (`str` or `List[str]`, *optional*):
                 The prompt or prompts to guide the image generation. If not defined, one has to pass `prompt_embeds`.

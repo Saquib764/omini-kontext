@@ -81,7 +81,7 @@ pipe.to("cuda")
 image = pipe(
     image=input_image,
     reference=reference_image,
-    reference_delta=[0, 0],
+    reference_delta=[0, 0, 0],
     prompt="Your text prompt here",
     guidance_scale=3.5
 ).images[0]
@@ -146,7 +146,7 @@ reference_image = load_image("path/to/reference.jpg")
 result = pipe(
     image=input_image,
     reference=reference_image,
-    reference_delta=[0, 0],  # Position delta for reference
+    reference_delta=[0, 0, 0],  # Position delta for reference
     prompt="A beautiful landscape with mountains",
     guidance_scale=3.5,
     num_inference_steps=28
@@ -174,7 +174,7 @@ pipe.enable_vae_tiling()
 result = pipe(
     image=input_image,
     reference=reference_image,
-    reference_delta=[64, 32],  # Offset reference by 64px right, 32px down
+    reference_delta=[0, 32, 64],  # Offset reference by 32 token down, 64 tokens right
     prompt="Your detailed prompt here",
     prompt_2="Additional prompt for T5 encoder",
     negative_prompt="blurry, low quality",
@@ -186,7 +186,7 @@ result = pipe(
 )
 ```
 
-**Note**: The `reference_delta` value is specific to the trained LoRA and depends on the settings used during training. The recommended value is calculated as `(1024 + 512) // 16 = 96`. This formula accounts for the image dimensions and the model's internal scaling factor.
+**Note**: The `reference_delta` value is specific to the trained LoRA and depends on the settings used during training. The recommended value is calculated as `[0, 0, (1024 + 512) // 16]`. This formula accounts for the image dimensions and the model's internal scaling factor.
 
 ## 🛠️ Training
 
@@ -299,7 +299,7 @@ lora_config = {
 |-----------|------|---------|-------------|
 | `image` | PIL.Image | None | Input image |
 | `reference` | PIL.Image | None | Reference image |
-| `reference_delta` | List[int] | [0, 0] | Position offset for reference (specific to trained LoRA, recommended: (1024+512)//16 = 96) |
+| `reference_delta` | List[int] | [0, 0, 0] | Position offset for reference (specific to trained LoRA, recommended: [0, 0, (1024+512)//16]) |
 | `prompt` | str | None | Text prompt |
 | `prompt_2` | str | None | Secondary text prompt |
 | `guidance_scale` | float | 3.5 | Classifier-free guidance scale |

@@ -5,7 +5,7 @@ from transformers import pipeline
 import cv2
 import torch
 import os
-
+from typing import List
 try:
     import wandb
 except ImportError:
@@ -78,7 +78,8 @@ class TrainingCallback(L.Callback):
                 trainer,
                 pl_module,
                 f"{self.save_path}/{self.run_name}/output",
-                f"lora_{self.total_steps}"
+                f"lora_{self.total_steps}",
+                delta=self.training_config["dataset"]["reference_delta"]
             )
             print("saving model: ", f"{self.save_path}/{self.run_name}/output/lora_{self.total_steps}.safetensors")
 
@@ -89,9 +90,11 @@ class TrainingCallback(L.Callback):
         pl_module,
         save_path,
         file_name,
+        delta: List[int] = [0, 0, 0]
     ):
         generator = torch.Generator(device=pl_module.device)
         generator.manual_seed(42)
+        delta = np.array(delta)
 
         test_list = []
 
@@ -103,7 +106,7 @@ class TrainingCallback(L.Callback):
             Image.open("assets/scene_01.png")
             .convert("RGB")
         )
-        test_list.append((init_img, reference_img, [0, (1024 + 512)//16], "Add the character to the image"))
+        test_list.append((init_img, reference_img, delta, "Add the character to the image"))
 
         reference_img = (
             Image.open("assets/boy_reference_512.png")
@@ -113,7 +116,7 @@ class TrainingCallback(L.Callback):
             Image.open("assets/scene_02.png")
             .convert("RGB")
         )
-        test_list.append((init_img, reference_img, [0, (1024 + 512)//16], "Add the character to the image"))
+        test_list.append((init_img, reference_img, delta, "Add the character to the image"))
         
 
         if not os.path.exists(save_path):

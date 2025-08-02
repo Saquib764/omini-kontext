@@ -12,8 +12,6 @@ train:
   gradient_checkpointing: false
   save_path: "runs"
 
-  condition_type: "subject"
-
   resume_training_from_last_checkpoint: false
   # Ignored if resume_training_from_last_checkpoint = true. 
   # Ignored if path does not exist.
@@ -24,7 +22,8 @@ train:
     reference_size: 512
     target_size: 512
     image_size: 512
-    padding: 8
+    reference_delta: [0, 0, 96]
+    
     drop_text_prob: 0.1
     drop_image_prob: 0.1
 
@@ -32,8 +31,8 @@ train:
     project: "OminiKontextControl"
 
   lora_config:
-    r: 24
-    lora_alpha: 24
+    r: 16
+    lora_alpha: 16
     init_lora_weights: "gaussian"
     target_modules: "(.*x_embedder|.*transformer_blocks\\.[0-9]+\\.(norm|norm1)\\.linear|.*transformer_blocks\\.[0-9]+\\.attn\\.(to_k|to_q|to_v|to_add_out)|.*transformer_blocks\\.[0-9]+\\.attn\\.to_out\\.0|.*single_transformer_blocks\\.[0-9]+\\.attn\\.to_out|.*single_transformer_blocks\\.[0-9]+\\.(proj_mlp|proj_out)|.*(?<!single_)transformer_blocks\\.[0-9]+\\.ff\\.net\\.2|.*(?<!single_)transformer_blocks\\.[0-9]+\\.ff\\.net\\.0\\.proj|.*(?<!single_)transformer_blocks\\.[0-9]+\\.norm1_context\\.linear|.*(?<!single_)transformer_blocks\\.[0-9]+\\.ff_context\\.net\\.0\\.proj|.*(?<!single_)transformer_blocks\\.[0-9]+\\.ff_context\\.net\\.2|.*(?<!single_)transformer_blocks\\.[0-9]+\\.attn\\.(to_add_out|add_k_proj|add_q_proj|add_v_proj))"
 
