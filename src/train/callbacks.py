@@ -79,7 +79,8 @@ class TrainingCallback(L.Callback):
                 pl_module,
                 f"{self.save_path}/{self.run_name}/output",
                 f"lora_{self.total_steps}",
-                delta=self.training_config["dataset"]["reference_delta"]
+                delta=self.training_config["dataset"]["reference_delta"],
+                sample_list=self.training_config["sample"]
             )
             print("saving model: ", f"{self.save_path}/{self.run_name}/output/lora_{self.total_steps}.safetensors")
 
@@ -90,7 +91,8 @@ class TrainingCallback(L.Callback):
         pl_module,
         save_path,
         file_name,
-        delta: List[int] = [0, 0, 0]
+        delta: List[int] = [0, 0, 0],
+        sample_list: List[str] = []
     ):
         generator = torch.Generator(device=pl_module.device)
         generator.manual_seed(42)
@@ -98,26 +100,17 @@ class TrainingCallback(L.Callback):
 
         test_list = []
 
-        reference_img = (
-            Image.open("assets/boy_reference_512.png")
-            .convert("RGB")
-        )
-        init_img = (
-            Image.open("assets/scene_01.png")
-            .convert("RGB")
-        )
-        test_list.append((init_img, reference_img, delta, "Add the character to the image"))
+        for test in sample_list:
+            reference_img = (
+                Image.open(test["reference_image"])
+                .convert("RGB")
+            )
+            init_img = (
+                Image.open(test["init_image"])
+                .convert("RGB")
+            )
+            test_list.append((init_img, reference_img, delta, test["prompt"]))
 
-        reference_img = (
-            Image.open("assets/boy_reference_512.png")
-            .convert("RGB")
-        )
-        init_img = (
-            Image.open("assets/scene_02.png")
-            .convert("RGB")
-        )
-        test_list.append((init_img, reference_img, delta, "Add the character to the image"))
-        
 
         if not os.path.exists(save_path):
             os.makedirs(save_path)

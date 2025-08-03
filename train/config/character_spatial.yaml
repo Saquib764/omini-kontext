@@ -18,8 +18,8 @@ train:
   resume_training_from_checkpoint_path: "runs/20250127-114531/ckpt/1000"
 
   dataset:
-    src: "data/character"
-    reference_delta: [0, 0, 96]
+    src: "data/character-spatial"
+    reference_delta: [1, 0, 0]
     
     drop_text_prob: 0.1
     drop_image_prob: 0.1
@@ -27,11 +27,19 @@ train:
   sample:
     - prompt: "Add the character to the image"
       init_image: "assets/scene_01.png"
-      reference_image: "assets/boy_reference_512.png"
-      
+      reference_image: "assets/spatial_reference_scene_01_boy_01.png"
+
+    - prompt: "Add the character to the image"
+      init_image: "assets/scene_01.png"
+      reference_image: "assets/spatial_reference_scene_01_boy_02.png"
+
     - prompt: "Add the character to the image"
       init_image: "assets/scene_02.png"
-      reference_image: "assets/boy_reference_512.png"
+      reference_image: "assets/spatial_reference_scene_02_boy_01.png"
+
+    - prompt: "Add the character to the image"
+      init_image: "assets/scene_02.png"
+      reference_image: "assets/spatial_reference_scene_02_boy_02.png"
 
   wandb:
     project: "OminiKontextControl"

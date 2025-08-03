@@ -12,14 +12,41 @@ The approach is heavily inspired from [OminiControl](https://github.com/Yuanshi9
 
 ## 🎨 Generated Samples
 
-### Character Insertion
+### Spatial Character Insertion
 
-The following examples demonstrate how the trained model can insert cartoon characters into existing scenes:
+The following examples demonstrate how the trained model can insert cartoon characters into existing scenes. It takes a reference character with the desired position of character in an white image, and a scene image. The model will insert the character into the scene image at the desired position. The model takes a some freedom to place the character, around the desired position (not exactly at the desired position), based on the feasibility (common sense) of image. 
+
+I used 30 image pair to train the model for intuitive blending task. Sometimes the results are not good, but overall the model is able to blend the character into the scene. This more like a POC. I plan to train another model(obviously opensource) with much larger dataset to make it more robust.
+
+| Scene | Reference Character | Generated Result |
+|-------|-------------------|------------------|
+| ![Scene 1](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_01.webp) | ![Output 1](assets/spatial-demo/scene_man_boy_01.webp) |
+| ![Scene 2](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_02.webp) | ![Output 2](assets/spatial-demo/scene_man_boy_02.webp) |
+| ![Scene 3](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_03.webp) | ![Output 3](assets/spatial-demo/scene_man_boy_03.webp) |
+| ![Scene 4](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_04.webp) | ![Output 4](assets/spatial-demo/scene_man_boy_04.webp) |
+| ![Scene 5](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_05.webp) | ![Output 5](assets/spatial-demo/scene_man_boy_05.webp) |
+| ![Scene 6](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_06.webp) | ![Output 6](assets/spatial-demo/scene_man_boy_06.webp) |
+| ![Scene 7](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_07.webp) | ![Output 7](assets/spatial-demo/scene_man_boy_07.webp) |
+| ![Scene 8](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_08.webp) | ![Output 8](assets/spatial-demo/scene_man_boy_08.webp) |
+| ![Scene 9](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_09.webp) | ![Output 9](assets/spatial-demo/scene_man_boy_09.webp) |
+| ![Scene 10](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_10.webp) | ![Output 10](assets/spatial-demo/scene_man_boy_10.webp) |
+| ![Scene 11](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_11.webp) | ![Output 11](assets/spatial-demo/scene_man_boy_11.webp) |
+| ![Scene 12](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_12.webp) | ![Output 12](assets/spatial-demo/scene_man_boy_12.webp) |
+| ![Scene 13](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_13.webp) | ![Output 13](assets/spatial-demo/scene_man_boy_13.webp) |
+| ![Scene 14](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_14.webp) | ![Output 14](assets/spatial-demo/scene_man_boy_14.webp) |
+
+
+
+
+### Non-spatial Character Insertion
+
+The following examples demonstrate how the trained model can insert cartoon characters into existing scenes. There is not spatial control over the character in this case.
 
 | Scene | Reference Character | Generated Result |
 |-------|-------------------|------------------|
 | ![Scene 1](assets/scene_01.png) | ![Boy Reference](assets/boy_reference_512.png) | ![Output 1](assets/output_01.png) |
 | ![Scene 2](assets/scene_02.png) | ![Boy Reference](assets/boy_reference_512.png) | ![Output 2](assets/output_02.png) |
+
 
 
 More comming soon!
@@ -40,7 +67,7 @@ The following table compares the performance of Omini Kontext model with a chara
 
 ## 📋 To-do
 
-- [ ] **Add ways to control location and scale of the reference character**
+- [x] **Add ways to control location and scale of the reference character**
 - [ ] **Speed up by removing irrelevant pixels**
 - [ ] **Deploy a public demo**
 - [ ] **Deploy a replicate version**
