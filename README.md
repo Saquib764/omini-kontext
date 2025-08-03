@@ -20,20 +20,20 @@ I used 30 image pair to train the model for intuitive blending task. Sometimes t
 
 | Scene | Reference Character | Generated Result |
 |-------|-------------------|------------------|
-| ![Scene 1](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_01.webp) | ![Output 1](assets/spatial-demo/scene_man_boy_01.webp) |
-| ![Scene 2](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_02.webp) | ![Output 2](assets/spatial-demo/scene_man_boy_02.webp) |
-| ![Scene 3](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_03.webp) | ![Output 3](assets/spatial-demo/scene_man_boy_03.webp) |
-| ![Scene 4](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_04.webp) | ![Output 4](assets/spatial-demo/scene_man_boy_04.webp) |
-| ![Scene 5](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_05.webp) | ![Output 5](assets/spatial-demo/scene_man_boy_05.webp) |
-| ![Scene 6](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_06.webp) | ![Output 6](assets/spatial-demo/scene_man_boy_06.webp) |
-| ![Scene 7](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_07.webp) | ![Output 7](assets/spatial-demo/scene_man_boy_07.webp) |
-| ![Scene 8](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_08.webp) | ![Output 8](assets/spatial-demo/scene_man_boy_08.webp) |
-| ![Scene 9](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_09.webp) | ![Output 9](assets/spatial-demo/scene_man_boy_09.webp) |
-| ![Scene 10](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_10.webp) | ![Output 10](assets/spatial-demo/scene_man_boy_10.webp) |
-| ![Scene 11](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_11.webp) | ![Output 11](assets/spatial-demo/scene_man_boy_11.webp) |
-| ![Scene 12](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_12.webp) | ![Output 12](assets/spatial-demo/scene_man_boy_12.webp) |
-| ![Scene 13](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_13.webp) | ![Output 13](assets/spatial-demo/scene_man_boy_13.webp) |
-| ![Scene 14](assets/spatial-demo/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_14.webp) | ![Output 14](assets/spatial-demo/scene_man_boy_14.webp) |
+| ![Scene 1](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_01.webp) | ![Output 1](assets/spatial-demo/scene_man_boy_01.webp) |
+| ![Scene 2](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_02.webp) | ![Output 2](assets/spatial-demo/scene_man_boy_02.webp) |
+| ![Scene 3](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_03.webp) | ![Output 3](assets/spatial-demo/scene_man_boy_03.webp) |
+| ![Scene 4](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_04.webp) | ![Output 4](assets/spatial-demo/scene_man_boy_04.webp) |
+| ![Scene 5](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_05.webp) | ![Output 5](assets/spatial-demo/scene_man_boy_05.webp) |
+| ![Scene 6](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_06.webp) | ![Output 6](assets/spatial-demo/scene_man_boy_06.webp) |
+| ![Scene 7](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_07.webp) | ![Output 7](assets/spatial-demo/scene_man_boy_07.webp) |
+| ![Scene 8](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_08.webp) | ![Output 8](assets/spatial-demo/scene_man_boy_08.webp) |
+| ![Scene 9](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_09.webp) | ![Output 9](assets/spatial-demo/scene_man_boy_09.webp) |
+| ![Scene 10](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_10.webp) | ![Output 10](assets/spatial-demo/scene_man_boy_10.webp) |
+| ![Scene 11](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_11.webp) | ![Output 11](assets/spatial-demo/scene_man_boy_11.webp) |
+| ![Scene 12](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_12.webp) | ![Output 12](assets/spatial-demo/scene_man_boy_12.webp) |
+| ![Scene 13](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_13.webp) | ![Output 13](assets/spatial-demo/scene_man_boy_13.webp) |
+| ![Scene 14](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_14.webp) | ![Output 14](assets/spatial-demo/scene_man_boy_14.webp) |
 
 
 
