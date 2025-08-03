@@ -67,7 +67,7 @@ The following table compares the performance of Omini Kontext model with a chara
 | ![Living Room](assets/comparison/living_room.webp) | ![Dog](assets/comparison/dog.webp) | ![Living Room Dog Vanilla](assets/comparison/results/living_room_dog_vanilla.webp) | ![Living Room Dog Omini](assets/comparison/results/living_room_dog_omini_with_lora.webp) |
 
 <details>
-<summary><strong>📋 Click to expand/collapse more spatial character insertion examples</strong></summary>
+<summary><strong>📋 Click to expand/collapse more model comparison examples</strong></summary>
 
 | Scene | Reference | Vanilla | Omini |
 |-------|-----------|---------|-------|
@@ -77,6 +77,8 @@ The following table compares the performance of Omini Kontext model with a chara
 | ![Forest](assets/comparison/forest.webp) | ![Dog](assets/comparison/dog.webp) | ![Forest Dog Vanilla](assets/comparison/results/forest_dog_vanilla.webp) | ![Forest Dog Omini](assets/comparison/results/forest_dog_omini_with_lora.webp) |
 
 </details>
+
+
 ## 📋 To-do
 
 - [x] **Add ways to control location and scale of the reference character**
