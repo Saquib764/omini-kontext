@@ -26,9 +26,9 @@ I used 30 image pair to train the model for intuitive blending task. Sometimes t
 
 <details>
 <summary><strong>📋 Click to expand/collapse more spatial character insertion examples</strong></summary>
-| Scene | Reference Character | Generated Result |
-|-------|-------------------|------------------| 
 
+| Scene | Reference Character | Generated Result |
+|-------|-------------------|------------------|
 | ![Scene 4](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_04.webp) | ![Output 4](assets/spatial-demo/scene_man_boy_04.webp) |
 | ![Scene 5](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_05.webp) | ![Output 5](assets/spatial-demo/scene_man_boy_05.webp) |
 | ![Scene 6](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_06.webp) | ![Output 6](assets/spatial-demo/scene_man_boy_06.webp) |
