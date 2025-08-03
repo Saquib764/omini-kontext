@@ -65,12 +65,18 @@ The following table compares the performance of Omini Kontext model with a chara
 |-------|-----------|---------|-------|
 | ![Living Room](assets/comparison/living_room.webp) | ![Boy](assets/comparison/boy.webp) | ![Living Room Boy Vanilla](assets/comparison/results/living_room_boy_vanilla.webp) | ![Living Room Boy Omini](assets/comparison/results/living_room_boy_omini_with_lora.webp) |
 | ![Living Room](assets/comparison/living_room.webp) | ![Dog](assets/comparison/dog.webp) | ![Living Room Dog Vanilla](assets/comparison/results/living_room_dog_vanilla.webp) | ![Living Room Dog Omini](assets/comparison/results/living_room_dog_omini_with_lora.webp) |
+
+<details>
+<summary><strong>📋 Click to expand/collapse more spatial character insertion examples</strong></summary>
+
+| Scene | Reference | Vanilla | Omini |
+|-------|-----------|---------|-------|
 | ![Living Room](assets/comparison/living_room.webp) | ![Girl](assets/comparison/girl.webp) | ![Living Room Girl Vanilla](assets/comparison/results/living_room_girl_vanilla.webp) | ![Living Room Girl Omini](assets/comparison/results/living_room_girl_omini_with_lora.webp) |
 | ![Forest](assets/comparison/forest.webp) | ![Boy](assets/comparison/boy.webp) | ![Forest Boy Vanilla](assets/comparison/results/forest_boy_vanilla.webp) | ![Forest Boy Omini](assets/comparison/results/forest_boy_omini_with_lora.webp) |
 | ![Forest](assets/comparison/forest.webp) | ![Girl](assets/comparison/girl.webp) | ![Forest Girl Vanilla](assets/comparison/results/forest_girl_vanilla.webp) | ![Forest Girl Omini](assets/comparison/results/forest_girl_omini_with_lora.webp) |
 | ![Forest](assets/comparison/forest.webp) | ![Dog](assets/comparison/dog.webp) | ![Forest Dog Vanilla](assets/comparison/results/forest_dog_vanilla.webp) | ![Forest Dog Omini](assets/comparison/results/forest_dog_omini_with_lora.webp) |
 
-
+</details>
 ## 📋 To-do
 
 - [x] **Add ways to control location and scale of the reference character**
