@@ -1,11 +1,13 @@
-# Flux Omini Kontext LoRA Training
+# Flux Omini Kontext framework for multi-image reference based training and generation
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org)
 [![Lightning](https://img.shields.io/badge/Lightning-2.0+-yellow.svg)](https://lightning.ai)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
-A comprehensive Lightning-based training framework for fine-tuning the Flux Omini Kontext pipeline using LoRA (Low-Rank Adaptation). This project enables efficient training of multi-image diffusion models that can generate images from input images, reference images, and text prompts.
+OminiKontext is a framework built around Flux.1-Kontext-dev model. We do not alter the model architecture, but rather we play around with 3D RoPE embeddings to enable reference based edits on a given image. 
+
+The approach is heavily inspired from [OminiControl](https://github.com/Yuanshi9815/OminiControl) project, that uses the same RoPE embeddings trick to achieve reference based image generation using Flux.1 dev model. However, Flux.1 dev uses 2D RoPE embeddings, where as Kontext uses 3D RoPE embeddings. 
 
 
 ## 🎨 Generated Samples
@@ -24,15 +26,16 @@ More comming soon!
 
 ### Model Comparison
 
-The following table compares the performance of our trained Omini Kontext model against the vanilla FLUX.1-Kontext-dev model:
+The following table compares the performance of Omini Kontext model with a character insertion LoRA, against the vanilla FLUX.1-Kontext-dev model. For the comparision, we used `Add character to the image. The character is scared.` as the prompt for all the images.
 
 | Scene | Reference | Vanilla | Omini |
 |-------|-----------|---------|-------|
-| ![Living Room](assets/comparison/living_room.webp) | ![Boy](assets/comparison/boy.webp) | ![Living Room Boy Vanilla](assets/comparison/results/living_room_boy_vanilla.webp) | ![Living Room Boy Omini](assets/comparison/results/living_room_boy_omini.webp) |
-| ![Living Room](assets/comparison/living_room.webp) | ![Dog](assets/comparison/dog.webp) | ![Living Room Dog Vanilla](assets/comparison/results/living_room_dog_vanilla.webp) | ![Living Room Dog Omini](assets/comparison/results/living_room_dog_omini.webp) |
-| ![Forest](assets/comparison/forest.webp) | ![Boy](assets/comparison/boy.webp) | ![Forest Boy Vanilla](assets/comparison/results/forest_boy_vanilla.webp) | ![Forest Boy Omini](assets/comparison/results/forest_boy_omini.webp) |
-| ![Forest](assets/comparison/forest.webp) | ![Girl](assets/comparison/girl.webp) | ![Forest Girl Vanilla](assets/comparison/results/forest_girl_vanilla.webp) | ![Forest Girl Omini](assets/comparison/results/forest_girl_omini.webp) |
-| ![Forest](assets/comparison/forest.webp) | ![Dog](assets/comparison/dog.webp) | ![Forest Dog Vanilla](assets/comparison/results/forest_dog_vanilla.webp) | ![Forest Dog Omini](assets/comparison/results/forest_dog_omini.webp) |
+| ![Living Room](assets/comparison/living_room.webp) | ![Boy](assets/comparison/boy.webp) | ![Living Room Boy Vanilla](assets/comparison/results/living_room_boy_vanilla.webp) | ![Living Room Boy Omini](assets/comparison/results/living_room_boy_omini_with_lora.webp) |
+| ![Living Room](assets/comparison/living_room.webp) | ![Dog](assets/comparison/dog.webp) | ![Living Room Dog Vanilla](assets/comparison/results/living_room_dog_vanilla.webp) | ![Living Room Dog Omini](assets/comparison/results/living_room_dog_omini_with_lora.webp) |
+| ![Living Room](assets/comparison/living_room.webp) | ![Girl](assets/comparison/girl.webp) | ![Living Room Girl Vanilla](assets/comparison/results/living_room_girl_vanilla.webp) | ![Living Room Girl Omini](assets/comparison/results/living_room_girl_omini_with_lora.webp) |
+| ![Forest](assets/comparison/forest.webp) | ![Boy](assets/comparison/boy.webp) | ![Forest Boy Vanilla](assets/comparison/results/forest_boy_vanilla.webp) | ![Forest Boy Omini](assets/comparison/results/forest_boy_omini_with_lora.webp) |
+| ![Forest](assets/comparison/forest.webp) | ![Girl](assets/comparison/girl.webp) | ![Forest Girl Vanilla](assets/comparison/results/forest_girl_vanilla.webp) | ![Forest Girl Omini](assets/comparison/results/forest_girl_omini_with_lora.webp) |
+| ![Forest](assets/comparison/forest.webp) | ![Dog](assets/comparison/dog.webp) | ![Forest Dog Vanilla](assets/comparison/results/forest_dog_vanilla.webp) | ![Forest Dog Omini](assets/comparison/results/forest_dog_omini_with_lora.webp) |
 
 
 ## 📋 To-do
