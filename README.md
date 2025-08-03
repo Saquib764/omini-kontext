@@ -23,6 +23,10 @@ I used 30 image pair to train the model for intuitive blending task. Sometimes t
 | ![Scene 1](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_01.webp) | ![Output 1](assets/spatial-demo/scene_man_boy_01.webp) |
 | ![Scene 2](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_02.webp) | ![Output 2](assets/spatial-demo/scene_man_boy_02.webp) |
 | ![Scene 3](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_03.webp) | ![Output 3](assets/spatial-demo/scene_man_boy_03.webp) |
+
+<details>
+<summary><strong>📋 Click to expand/collapse more spatial character insertion examples</strong></summary>
+
 | ![Scene 4](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_04.webp) | ![Output 4](assets/spatial-demo/scene_man_boy_04.webp) |
 | ![Scene 5](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_05.webp) | ![Output 5](assets/spatial-demo/scene_man_boy_05.webp) |
 | ![Scene 6](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_06.webp) | ![Output 6](assets/spatial-demo/scene_man_boy_06.webp) |
@@ -35,7 +39,7 @@ I used 30 image pair to train the model for intuitive blending task. Sometimes t
 | ![Scene 13](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_13.webp) | ![Output 13](assets/spatial-demo/scene_man_boy_13.webp) |
 | ![Scene 14](assets/scene_01.png) | ![Boy Reference](assets/spatial-demo/reference_boy_14.webp) | ![Output 14](assets/spatial-demo/scene_man_boy_14.webp) |
 
-
+</details>
 
 
 ### Non-spatial Character Insertion
