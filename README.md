@@ -1,4 +1,4 @@
-# Flux Omini Kontext framework for multi-image reference based training and generation
+# Flux Omini Kontext framework for multi-image reference: training and inference
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org)
