@@ -27,7 +27,7 @@ class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
         self.pipe = FluxOminiKontextPipeline.from_pretrained(
-            "flux-ai/flux-omini-kontext", torch_dtype=torch.bfloat16
+            "black-forest-labs/FLUX.1-Kontext-dev", torch_dtype=torch.bfloat16
         ).to("cuda")
 
     def predict(
