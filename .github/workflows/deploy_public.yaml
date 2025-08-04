@@ -27,4 +27,6 @@ jobs:
       - name: Push to Replicate
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: cog push r8.im/thefluxtrain/omini-kontext -e HF_TOKEN=${{ secrets.HF_TOKEN }}
+        run: 
+          cog build -t r8.im/thefluxtrain/omini-kontext --build-arg HF_TOKEN=${{ secrets.HF_TOKEN }}
+          cog push r8.im/thefluxtrain/omini-kontext -e HF_TOKEN=${{ secrets.HF_TOKEN }}
