@@ -63,7 +63,15 @@ def ensure_hf_login() -> None:
         print("Already logged into Hugging Face")
     except Exception:
         print("Logging into Hugging Face...")
-        login()
+        token = os.environ.get("HF_TOKEN")
+        if not token:
+            try:
+                with open("hf_token.txt", "r") as f:
+                    token = f.read().strip()
+            except Exception as e:
+                print("Could not read HF token from hf_token.txt:", e)
+                token = None
+        login(token=token)
 
 def cleanup_temp_files(folder: str) -> None:
     """Clean up temporary files and folders."""

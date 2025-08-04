@@ -23,7 +23,11 @@ jobs:
         uses: replicate/setup-cog@v2
         with:
           token: ${{ secrets.REPLICATE_API_TOKEN_THEFLUXTRAIN }}
-        
+
+      - name: Write HF token to file
+        run: |
+          echo ${{ secrets.HF_TOKEN }} > hf_token.txt
+
       - name: Push to Replicate
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
