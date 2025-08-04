@@ -29,4 +29,4 @@ jobs:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: 
           cog build -t omini-kontext --build-arg HF_TOKEN=${{ secrets.HF_TOKEN }}
-          cog push r8.im/thefluxtrain/omini-kontext -e HF_TOKEN=${{ secrets.HF_TOKEN }}
+          cog push r8.im/thefluxtrain/omini-kontext
