@@ -59,19 +59,27 @@ def download_weights(url: str, dest: Path) -> None:
 def ensure_hf_login() -> None:
     """Ensure logged into HuggingFace."""
     try:
+        print("[ensure_hf_login] Checking Hugging Face login status...")
         whoami()
-        print("Already logged into Hugging Face")
-    except Exception:
-        print("Logging into Hugging Face...")
+        print("[ensure_hf_login] Already logged into Hugging Face")
+    except Exception as e:
+        print("[ensure_hf_login] Not logged in. Exception:", e)
+        print("[ensure_hf_login] Logging into Hugging Face...")
         token = os.environ.get("HF_TOKEN")
+        print(f"[ensure_hf_login] HF_TOKEN from env: {'FOUND' if token else 'NOT FOUND'}")
         if not token:
             try:
+                print("[ensure_hf_login] Trying to read token from hf_token.txt...")
                 with open("hf_token.txt", "r") as f:
                     token = f.read().strip()
+                print("[ensure_hf_login] Token read from hf_token.txt")
             except Exception as e:
-                print("Could not read HF token from hf_token.txt:", e)
+                print("[ensure_hf_login] Could not read HF token from hf_token.txt:", e)
                 token = None
+        else:
+            print("[ensure_hf_login] Using token from environment variable")
         login(token=token)
+        print("[ensure_hf_login] Login attempted with token:", "PRESENT" if token else "MISSING")
 
 def cleanup_temp_files(folder: str) -> None:
     """Clean up temporary files and folders."""
