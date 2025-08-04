@@ -26,6 +26,8 @@ LoRA_MODELS = {
 class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
+
+        ensure_hf_login()
         self.pipe = FluxOminiKontextPipeline.from_pretrained(
             "black-forest-labs/FLUX.1-Kontext-dev", torch_dtype=torch.bfloat16
         ).to("cuda")
@@ -66,7 +68,6 @@ class Predictor(BasePredictor):
         """Run a single prediction on the model"""
         if image is None or reference_image is None:
             raise ValueError("Both 'image' and 'reference_image' must be provided.")
-        ensure_hf_login()
         delta = json.loads(delta)
 
         self.pipe.unload_lora_weights()
