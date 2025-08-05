@@ -1,0 +1,35 @@
+name: Push to TheFluxTrain public Replicate model
+ 
+on:
+  push:
+    branches:
+      - replicate_model
+ 
+jobs:
+  push_to_replicate:
+    name: Push to Replicate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free disk pace
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          docker-images: false
+ 
+      - name: Checkout
+        uses: actions/checkout@v4
+ 
+      - name: Setup Cog
+        uses: replicate/setup-cog@v2
+        with:
+          token: ${{ secrets.REPLICATE_API_TOKEN_THEFLUXTRAIN }}
+
+      - name: Write HF token to file
+        run: |
+          echo ${{ secrets.HF_TOKEN }} > hf_token.txt
+
+      - name: Push to Replicate
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: 
+          cog push r8.im/thefluxtrain/omini-kontext

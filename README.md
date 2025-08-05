@@ -5,6 +5,10 @@
 [![Lightning](https://img.shields.io/badge/Lightning-2.0+-yellow.svg)](https://lightning.ai)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
+## 🚀 Live Demo
+
+Try the model live: **[Demo](http://thefluxtrain.com/research/omini-kontext/demo)**
+
 OminiKontext is a framework built around Flux.1-Kontext-dev model. We do not alter the model architecture, but rather we play around with 3D RoPE embeddings to enable reference based edits on a given image. 
 
 The approach is heavily inspired from [OminiControl](https://github.com/Yuanshi9815/OminiControl) project, that uses the same RoPE embeddings trick to achieve reference based image generation using Flux.1 dev model. However, Flux.1 dev uses 2D RoPE embeddings, where as Kontext uses 3D RoPE embeddings. 
@@ -83,7 +87,7 @@ The following table compares the performance of Omini Kontext model with a chara
 
 - [x] **Add ways to control location and scale of the reference character**
 - [ ] **Speed up by removing irrelevant pixels**
-- [ ] **Deploy a public demo**
+- [x] **Deploy a public demo**
 - [ ] **Deploy a replicate version**
 - [x] **Add comfyUI integration - Scroll to bottom**
 - [x] **Basic training script**
