@@ -7,7 +7,7 @@
 
 ## 🚀 Live Demo
 
-Try the model live: **[Demo](http://thefluxtrain.com/research/omini-kontext/demo)**
+Try the model live: **[Demo](http://thefluxtrain.com/research/omini-kontext/demo){:target="_blank"}**
 
 OminiKontext is a framework built around Flux.1-Kontext-dev model. We do not alter the model architecture, but rather we play around with 3D RoPE embeddings to enable reference based edits on a given image. 
 
