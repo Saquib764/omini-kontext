@@ -9,6 +9,10 @@
 
 Try the model live: **[Demo](http://thefluxtrain.com/research/omini-kontext/demo)**
 
+Replicate version: https://replicate.com/thefluxtrain/omini-kontext
+
+If you have trained your own model, you can use it on replicate. You will have to upload the model on HF, and enter the details on replicate.
+
 OminiKontext is a framework built around Flux.1-Kontext-dev model. We do not alter the model architecture, but rather we play around with 3D RoPE embeddings to enable reference based edits on a given image. 
 
 The approach is heavily inspired from [OminiControl](https://github.com/Yuanshi9815/OminiControl) project, that uses the same RoPE embeddings trick to achieve reference based image generation using Flux.1 dev model. However, Flux.1 dev uses 2D RoPE embeddings, where as Kontext uses 3D RoPE embeddings. 
@@ -88,7 +92,7 @@ The following table compares the performance of Omini Kontext model with a chara
 - [x] **Add ways to control location and scale of the reference character**
 - [ ] **Speed up by removing irrelevant pixels**
 - [x] **Deploy a public demo**
-- [ ] **Deploy a replicate version**
+- [x] **Deploy a replicate version**
 - [x] **Add comfyUI integration - Scroll to bottom**
 - [x] **Basic training script**
 - [x] **Basic inference script**
