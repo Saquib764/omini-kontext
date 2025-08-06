@@ -807,7 +807,7 @@ class FluxOminiKontextPipeline(
         callback_on_step_end_tensor_inputs: List[str] = ["latents"],
         max_sequence_length: int = 512,
         max_area: int = 1024**2,
-        _auto_resize: bool = True,
+        _auto_resize: bool = False,
     ):
         r"""
         Function invoked when calling the pipeline for generation.
