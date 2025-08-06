@@ -4,3 +4,4 @@ data.zip
 */.ipynb_checkpoints/*
 
 .DS_Store
+custom_data/*
