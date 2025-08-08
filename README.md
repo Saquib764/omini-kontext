@@ -378,6 +378,8 @@ Repo link - https://github.com/tercumantanumut/ComfyUI-Omini-Kontext
 
 Thanks to [tercumantanumut](https://github.com/tercumantanumut) for the ComfyUI integration!
 
+<iframe style="width:100%;height:auto;min-width:600px;min-height:400px;" src="https://www.star-history.com/embed?secret=Z2hwXzcxTkxPcnZ3WjJqYzNHM21QM3VyYVgzYnl6MjhQYzJUN0ttUg==#Saquib764/omini-kontext&Timeline" frameBorder="0"></iframe>
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our contributing guidelines:
