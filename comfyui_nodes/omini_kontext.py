@@ -46,8 +46,6 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
     h_len = ((h_orig + (patch_size // 2)) // patch_size)
     w_len = ((w_orig + (patch_size // 2)) // patch_size)
     img, img_ids = self.process_img(x)
-    print("img", img.shape, img_ids.shape)
-    print("img_ids", img_ids)
     img_tokens = img.shape[1]
     if ref_latents is not None:
         h = 0
@@ -70,8 +68,7 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
         for lat, delta in zip(omini_latents, omini_latents_deltas):
             i_offset, h_offset, w_offset = delta[0,0,0].tolist()
             print("delta", i_offset, h_offset, w_offset, self.patch_size)
-            kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset, w_offset=w_offset)
-            print("kontext", kontext.shape, kontext_ids.shape)
+            kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset * self.patch_size, w_offset=w_offset * self.patch_size)
             print("kontext_ids", kontext_ids)
             img = torch.cat([img, kontext], dim=1)
             img_ids = torch.cat([img_ids, kontext_ids], dim=1)
