@@ -20,8 +20,6 @@ def extra_conds(self, **kwargs):
         for cond in omini_latents:
             lat = cond["latent"]
             delta = cond["delta"]
-            print("lat", lat.shape)
-            print("delta", torch.tensor([[[delta]]], device=lat.device).shape)
             latents.append(self.process_latent_in(lat))
             deltas.append(torch.tensor([[[delta]]], device=lat.device))
         out['omini_latents'] = comfy.conds.CONDList(latents)
@@ -102,9 +100,9 @@ class OminiKontextModelPatch:
 
             # Now backup and replace the extra_conds and extra_conds_shapes methods
             new_model.model._extra_conds = new_model.model.extra_conds
-            # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
+            new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
             new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
-            # new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
+            new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
         return (new_model,)
 
 
