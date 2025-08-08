@@ -11,9 +11,11 @@ import random
 import json
 
 
+
 from utils import (
     ensure_hf_login,
     cleanup_temp_files,
+    optimise_image_condition
 )
 
 LoRA_MODELS = {
@@ -111,11 +113,12 @@ class Predictor(BasePredictor):
             reference_image = reference_image.resize((width, height), Image.LANCZOS)
         
         try:
+            optimised_reference, new_reference_delta = optimise_image_condition(reference_image, delta)
             result_img = self.pipe(
                 prompt=prompt,
                 image=image,
-                reference=reference_image,
-                reference_delta=delta,
+                reference=optimised_reference,
+                reference_delta=new_reference_delta,
                 num_inference_steps=num_inference_steps,
                 height=height,
                 width=width,
