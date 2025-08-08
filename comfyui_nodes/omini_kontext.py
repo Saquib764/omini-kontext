@@ -104,9 +104,9 @@ class OminiKontextModelPatch:
 
             # Now backup and replace the extra_conds and extra_conds_shapes methods
             new_model.model._extra_conds = new_model.model.extra_conds
-            new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
+            # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
             new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
-            new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
+            # new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
         return (new_model,)
 
 
