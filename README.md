@@ -365,7 +365,7 @@ Drop this image in ComfyUI interface to load the workflow -
 ![ComfyUI Workflow](assets/comfyui_workflow.png)
 
 Nodes -
-![Components](comfyui_nodes.png)
+<img src="comfyui_nodes.png" alt="Components" style="height:200px;">
 
 ---
 
