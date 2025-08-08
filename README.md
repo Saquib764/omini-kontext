@@ -107,18 +107,6 @@ The following table compares the performance of Omini Kontext model with a chara
 - [x] **Character Models**: Train specialized models for anime/cartoon characters
 
 
-## 🌟 Features
-
-- **🚀 Lightning-based Training**: Built on PyTorch Lightning for scalable and efficient training
-- **🎯 LoRA Fine-tuning**: Memory-efficient training with only 0.1% additional parameters
-- **🖼️ Multi-image Input**: Supports both input image and reference image with position deltas
-- **📝 Text Conditioning**: Advanced text prompt processing with CLIP and T5 encoders
-- **⚡ Gradient Checkpointing**: Memory-efficient training for large models
-- **🔧 Multiple Optimizers**: Support for AdamW, Prodigy, and SGD optimizers
-- **📊 Comprehensive Monitoring**: Built-in logging and experiment tracking
-- **🎨 Flexible Resolution**: Support for various image resolutions and aspect ratios
-- **⚙️ Reference Optimization**: Smart preprocessing to reduce token usage and improve inference speed
-
 ## 🚀 Quick Start
 
 ### Setup Environment
