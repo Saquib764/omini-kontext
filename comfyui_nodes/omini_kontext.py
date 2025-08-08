@@ -3,6 +3,32 @@ import torch
 from einops import rearrange
 import comfy.ldm.flux.model
 import types
+import math
+import comfy.conds
+import comfy.hooks
+import comfy.model_base
+import comfy.utils
+
+
+def extra_conds(self, **kwargs):
+    out = self._extra_conds(**kwargs)
+    
+    omini_latents = kwargs.get("omini_latents", None)
+    if omini_latents is not None:
+        latents = []
+        for lat in omini_latents:
+            latents.append(self.process_latent_in(lat))
+        out['omini_latents'] = comfy.conds.CONDList(latents)
+    return out
+
+def extra_conds_shapes(self, **kwargs):
+    out = self._extra_conds_shapes(**kwargs)
+    out = {}
+    omini_latents = kwargs.get("omini_latents", None)
+    if omini_latents is not None:
+        out['omini_latents'] = list([1, 16, sum(map(lambda a: math.prod(a.size()), omini_latents)) // 16])
+    return out
+
 
 def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=None, control=None, transformer_options={}, omini_latents=None, **kwargs):
     print("new_forward")
@@ -52,14 +78,17 @@ class OminiKontextModelPatch:
     CATEGORY = "model_patches/unet"
 
     def apply_patch(self, model):
-        print(model)
-        print(model.model)
-        print(model.model.diffusion_model)
         new_model = model.clone()
         if is_flux_model(model.get_model_object('diffusion_model')):
             diffusion_model = model.get_model_object('diffusion_model')
             # Replace the forward method with the new one type 
             diffusion_model.forward = types.MethodType(new_forward, diffusion_model)
+
+            # Now backup and replace the extra_conds and extra_conds_shapes methods
+            diffusion_model._extra_conds = diffusion_model.extra_conds
+            diffusion_model._extra_conds_shapes = diffusion_model.extra_conds_shapes
+            diffusion_model.extra_conds = types.MethodType(extra_conds, diffusion_model)
+            diffusion_model.extra_conds_shapes = types.MethodType(extra_conds_shapes, diffusion_model)
         return (new_model,)
 
 
