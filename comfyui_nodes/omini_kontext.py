@@ -42,7 +42,6 @@ def extra_conds_shapes(self, **kwargs):
 
 
 def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=None, control=None, transformer_options={}, omini_latents=None, omini_latents_deltas=None, **kwargs):
-    print("new_forward")
     bs, c, h_orig, w_orig = x.shape
     patch_size = self.patch_size
 
@@ -69,9 +68,7 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
     
     if omini_latents is not None:
         for lat, delta in zip(omini_latents, omini_latents_deltas):
-            print("delta", delta[0,0,0])
             i_offset, h_offset, w_offset = delta[0,0,0].tolist()
-            print("Deltas", i_offset, h_offset, w_offset)
             kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset, w_offset=w_offset)
             img = torch.cat([img, kontext], dim=1)
             img_ids = torch.cat([img_ids, kontext_ids], dim=1)
