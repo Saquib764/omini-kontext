@@ -17,6 +17,9 @@ OminiKontext is a framework built around Flux.1-Kontext-dev model. We do not alt
 
 The approach is heavily inspired from [OminiControl](https://github.com/Yuanshi9815/OminiControl) project, that uses the same RoPE embeddings trick to achieve reference based image generation using Flux.1 dev model. However, Flux.1 dev uses 2D RoPE embeddings, where as Kontext uses 3D RoPE embeddings. 
 
+## More details on delta values-
+Read this issue - https://github.com/Saquib764/omini-kontext/issues/12
+
 
 ## 🎨 Generated Samples
 
