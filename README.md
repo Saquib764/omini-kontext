@@ -362,10 +362,9 @@ Simply clone this repo in your ComfyUI/custom_nodes folder. Using this integrati
 
 Drop this image in ComfyUI interface to load the workflow -
 
-![ComfyUI Workflow](assets/comfyui_workflow.png)
+<img src="assets/comfyui_workflow.png" alt="ComfyUI Workflow" style="height:300px;">
 
-Nodes -
-<img src="comfyui_nodes.png" alt="Components" style="height:200px;">
+<img src="comfyui_nodes.png" alt="Components" style="height:300px;">
 
 ---
 
