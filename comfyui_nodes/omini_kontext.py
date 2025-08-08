@@ -8,7 +8,7 @@ class OminiKontextModelPatch:
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply_patch"
 
-    CATEGORY = "advanced/conditioning/edit_models"
+    CATEGORY = "model_patches/unet"
 
     def apply_patch(self, model):
         print(model)
