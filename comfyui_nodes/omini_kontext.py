@@ -114,8 +114,8 @@ class OminiKontextConditioning:
         return {"required": {"conditioning": ("CONDITIONING", ),
                              "latent": ("LATENT", ),
                              "delta_0": ("INT", {"default": 0, "min": -100, "max": 100}),
-                             "delta_1": ("INT", {"default": 0, "min": -100, "max": 100}),
-                             "delta_2": ("INT", {"default": 0, "min": -100, "max": 100})
+                             "delta_1": ("INT", {"default": 0, "min": -200, "max": 200}),
+                             "delta_2": ("INT", {"default": 0, "min": -200, "max": 200})
                             },
                }
 
