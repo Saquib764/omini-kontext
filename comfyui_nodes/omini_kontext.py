@@ -69,7 +69,7 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
     if omini_latents is not None:
         for lat, delta in zip(omini_latents, omini_latents_deltas):
             i_offset, h_offset, w_offset = delta[0,0,0].tolist()
-            print("delta", i_offset, h_offset, w_offset)
+            print("delta", i_offset, h_offset, w_offset, self.patch_size)
             kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset, w_offset=w_offset)
             print("kontext", kontext.shape, kontext_ids.shape)
             print("kontext_ids", kontext_ids)
