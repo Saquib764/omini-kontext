@@ -88,7 +88,7 @@ The following table compares the performance of Omini Kontext model with a chara
 
 
 ## 📋 To-do
-
+- [x] **Make a data processing script, available in helpers/dataset_creator.ipynb**
 - [x] **Add ways to control location and scale of the reference character**
 - [ ] **Speed up by removing irrelevant pixels**
 - [x] **Deploy a public demo**
@@ -97,7 +97,7 @@ The following table compares the performance of Omini Kontext model with a chara
 - [x] **Basic training script**
 - [x] **Basic inference script**
 
-### Model Plans
+### Model training Plans
 - [ ] **Person Models**: Develop models for realistic human subjects
 - [ ] **Clothes Models**: Create models for clothing and fashion items
 - [ ] **Subject Models**: Train models for specific objects and items

@@ -38,12 +38,11 @@ def handle_mouse_down(x, y):
     position_at_mouse_down = (x, y)
     
 def handle_mouse_up(x, y):
-    global is_mouse_down, position_at_mouse_up, image
+    global is_mouse_down, position_at_mouse_up, image, processed_image
     is_mouse_down = False
     position_at_mouse_up = (x, y)
     if position_at_mouse_down is not None:
         # Draw the rectangle directly on the image array and update the canvas
-        img_arr = np.array(image)
         x0, y0 = position_at_mouse_down
         x1, y1 = x, y
 
@@ -78,8 +77,8 @@ canvas.on_mouse_move(handle_mouse_move)
 canvas.on_mouse_up(handle_mouse_up)
 
 
-def crop_image(image_path, _save_path = 'current_canvas.png'):
-    global image, save_path, original_image, scale
+def crop_image(image_path, _save_path = 'current_canvas.png', force=False):
+    global image, save_path, original_image, scale, processed_image
     save_path = _save_path
     original_image = Image.open(image_path).convert("RGB")
     orig_w, orig_h = original_image.size
@@ -110,12 +109,13 @@ def crop_image(image_path, _save_path = 'current_canvas.png'):
     # Draw image on canvas
     canvas.put_image_data(np.array(image))
 
-    if os.path.exists(save_path):
+    if not force and os.path.exists(save_path):
         return canvas
 
     w = (orig_w//16)*16
     h = (orig_h//16)*16
     im = original_image.crop((0, 0, w, h))
     im.save(save_path)
+    processed_image = im
 
     return canvas
