@@ -90,7 +90,7 @@ The following table compares the performance of Omini Kontext model with a chara
 ## 📋 To-do
 - [ ] **Use dataset from HF for training**
 - [ ] **Scrip to push dataset to huggingface**
-- [ ] **Create an easy to use ComfyUI integration, one that uses native comfyui nodes**
+- [x] **Create an easy to use ComfyUI integration, one that uses native comfyui nodes. Scroll to end.**
 - [x] **Make a data processing script, available in helpers/dataset_creator.ipynb**
 - [x] **Add ways to control location and scale of the reference character**
 - [x] **Speed up by removing irrelevant pixels**
@@ -106,18 +106,6 @@ The following table compares the performance of Omini Kontext model with a chara
 - [ ] **Subject Models**: Train models for specific objects and items
 - [x] **Character Models**: Train specialized models for anime/cartoon characters
 
-
-## 🌟 Features
-
-- **🚀 Lightning-based Training**: Built on PyTorch Lightning for scalable and efficient training
-- **🎯 LoRA Fine-tuning**: Memory-efficient training with only 0.1% additional parameters
-- **🖼️ Multi-image Input**: Supports both input image and reference image with position deltas
-- **📝 Text Conditioning**: Advanced text prompt processing with CLIP and T5 encoders
-- **⚡ Gradient Checkpointing**: Memory-efficient training for large models
-- **🔧 Multiple Optimizers**: Support for AdamW, Prodigy, and SGD optimizers
-- **📊 Comprehensive Monitoring**: Built-in logging and experiment tracking
-- **🎨 Flexible Resolution**: Support for various image resolutions and aspect ratios
-- **⚙️ Reference Optimization**: Smart preprocessing to reduce token usage and improve inference speed
 
 ## 🚀 Quick Start
 
@@ -368,6 +356,19 @@ lora_config = {
 
 
 ### ComfyUI Integration
+Simply clone this repo in your ComfyUI/custom_nodes folder. Using this integration will let you use the native ComfyUI nodes together with the OminiKontext nodes. There are two nodes in the repo - 
+1. OminiKontextConditioning - To condition the model on a reference image, along with a delta value.
+2. OminiKontextModelPatch - Patch for the Kontext model.
+
+Drop this image in ComfyUI interface to load the workflow -
+
+<img src="assets/comfyui_workflow.png" alt="ComfyUI Workflow" style="height:300px;">
+
+<img src="comfyui_nodes.png" alt="Components" style="height:300px;">
+
+---
+
+Alternative ComfyUI integration -
 
 Repo link - https://github.com/tercumantanumut/ComfyUI-Omini-Kontext
 
