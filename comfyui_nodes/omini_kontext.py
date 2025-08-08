@@ -1,4 +1,45 @@
 import node_helpers
+import torch
+from einops import rearrange
+import comfy.ldm.flux.model
+import types
+
+def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=None, control=None, transformer_options={}, omini_latents=None, **kwargs):
+    print("new_forward")
+    bs, c, h_orig, w_orig = x.shape
+    patch_size = self.patch_size
+
+    h_len = ((h_orig + (patch_size // 2)) // patch_size)
+    w_len = ((w_orig + (patch_size // 2)) // patch_size)
+    img, img_ids = self.process_img(x)
+    img_tokens = img.shape[1]
+    print(omini_latents)
+    if ref_latents is not None:
+        h = 0
+        w = 0
+        for ref in ref_latents:
+            h_offset = 0
+            w_offset = 0
+            if ref.shape[-2] + h > ref.shape[-1] + w:
+                w_offset = w
+            else:
+                h_offset = h
+
+            kontext, kontext_ids = self.process_img(ref, index=1, h_offset=h_offset, w_offset=w_offset)
+            img = torch.cat([img, kontext], dim=1)
+            img_ids = torch.cat([img_ids, kontext_ids], dim=1)
+            h = max(h, ref.shape[-2] + h_offset)
+            w = max(w, ref.shape[-1] + w_offset)
+
+    txt_ids = torch.zeros((bs, context.shape[1], 3), device=x.device, dtype=x.dtype)
+    out = self.forward_orig(img, img_ids, context, txt_ids, timestep, y, guidance, control, transformer_options, attn_mask=kwargs.get("attention_mask", None))
+    out = out[:, :img_tokens]
+    return rearrange(out, "b (h w) (c ph pw) -> b c (h ph) (w pw)", h=h_len, w=w_len, ph=2, pw=2)[:,:,:h_orig,:w_orig]
+
+def is_flux_model(model):
+    if isinstance(model, comfy.ldm.flux.model.Flux):
+        return True
+    return False
 
 class OminiKontextModelPatch:
     @classmethod
@@ -14,7 +55,12 @@ class OminiKontextModelPatch:
         print(model)
         print(model.model)
         print(model.model.diffusion_model)
-        return (model,)
+        new_model = model.clone()
+        if is_flux_model(model.get_model_object('diffusion_model')):
+            diffusion_model = model.get_model_object('diffusion_model')
+            # Replace the forward method with the new one type 
+            diffusion_model.forward = types.MethodType(new_forward, diffusion_model)
+        return (new_model,)
 
 
 class OminiKontextConditioning:
@@ -36,7 +82,7 @@ class OminiKontextConditioning:
 
     def append(self, conditioning, latent=None, delta_0=0, delta_1=0, delta_2=0):
         if latent is not None:
-            conditioning = node_helpers.conditioning_set_values(conditioning, {"omini_latents": [{"latent":latent["samples"]}], "delta": [delta_0, delta_1, delta_2]}, append=True)
+            conditioning = node_helpers.conditioning_set_values(conditioning, {"omini_latents": [latent["samples"]]}, append=True)
         return (conditioning, )
 
 
