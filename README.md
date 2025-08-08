@@ -92,7 +92,7 @@ The following table compares the performance of Omini Kontext model with a chara
 - [ ] **Scrip to push dataset to huggingface**
 - [x] **Make a data processing script, available in helpers/dataset_creator.ipynb**
 - [x] **Add ways to control location and scale of the reference character**
-- [ ] **Speed up by removing irrelevant pixels**
+- [x] **Speed up by removing irrelevant pixels**
 - [x] **Deploy a public demo**
 - [x] **Deploy a replicate version**
 - [x] **Add comfyUI integration - Scroll to bottom**
@@ -116,6 +116,7 @@ The following table compares the performance of Omini Kontext model with a chara
 - **🔧 Multiple Optimizers**: Support for AdamW, Prodigy, and SGD optimizers
 - **📊 Comprehensive Monitoring**: Built-in logging and experiment tracking
 - **🎨 Flexible Resolution**: Support for various image resolutions and aspect ratios
+- **⚙️ Reference Optimization**: Smart preprocessing to reduce token usage and improve inference speed
 
 ## 🚀 Quick Start
 
@@ -209,6 +210,31 @@ result = pipe(
 result.images[0].save("output.png")
 ```
 
+### Optimizing Reference Images
+
+The `optimise_image_condition` function helps improve inference and training performance by preprocessing reference images to optimize token usage. This optimization removes irrelevant pixels while preserving the essential features needed for conditioning.
+
+```python
+from src.utils.image_utils import optimise_image_condition
+from PIL import Image
+
+# Load your reference image
+reference = Image.open("path/to/reference.jpg")
+
+# Optimize the reference image
+reference_delta = [0, 0, 96]
+optimised_reference, new_reference_delta = optimise_image_condition(reference, reference_delta)
+
+# Use in inference
+result = pipe(
+    image=input_image,
+    reference=optimized_reference,  # Pass the optimized reference
+    reference_delta=new_reference_delta,
+    prompt="A beautiful landscape with mountains",
+    guidance_scale=3.5,
+    num_inference_steps=28
+)
+```
 
 ## 🛠️ Training
 
