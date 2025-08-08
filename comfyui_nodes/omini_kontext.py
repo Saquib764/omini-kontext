@@ -21,9 +21,9 @@ def extra_conds(self, **kwargs):
             lat = cond["latent"]
             delta = cond["delta"]
             print("lat", lat.shape)
-            print("delta", delta)
+            print("delta", torch.tensor([delta], device=lat.device).shape)
             latents.append(self.process_latent_in(lat))
-            deltas.append(torch.tensor(delta, device=lat.device))
+            deltas.append(torch.tensor([delta], device=lat.device))
         out['omini_latents'] = comfy.conds.CONDList(latents)
         out['omini_latents_deltas'] = comfy.conds.CONDList(deltas)
     return out
