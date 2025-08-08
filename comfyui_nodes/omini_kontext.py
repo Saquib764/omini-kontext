@@ -21,17 +21,20 @@ def extra_conds(self, **kwargs):
             lat = cond["latent"]
             delta = cond["delta"]
             latents.append(self.process_latent_in(lat))
-            deltas.append(delta)
+            deltas.append(torch.tensor(delta, device=lat.device))
         out['omini_latents'] = comfy.conds.CONDList(latents)
-        out['omini_latents_deltas'] = deltas
+        out['omini_latents_deltas'] = comfy.conds.CONDList(deltas)
     return out
 
 def extra_conds_shapes(self, **kwargs):
     out = self._extra_conds_shapes(**kwargs)
     out = {}
     omini_latents = kwargs.get("omini_latents", None)
+    omini_latents_deltas = kwargs.get("omini_latents_deltas", None)
     if omini_latents is not None:
         out['omini_latents'] = list([1, 16, sum(map(lambda a: math.prod(a.size()), omini_latents)) // 16])
+    if omini_latents_deltas is not None:
+        out['omini_latents_deltas'] = list([1, 3, sum(map(lambda a: math.prod(a.size()), omini_latents_deltas)) // 3])
     return out
 
 
