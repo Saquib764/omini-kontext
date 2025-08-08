@@ -31,7 +31,6 @@ def extra_conds_shapes(self, **kwargs):
     out = {}
     omini_latents = kwargs.get("omini_latents", None)
     omini_latents_deltas = kwargs.get("omini_latents_deltas", None)
-    print("omini_latents_deltas", omini_latents_deltas)
     if omini_latents is not None:
         out['omini_latents'] = list([1, 16, sum(map(lambda a: math.prod(a.size()), omini_latents)) // 16])
     if omini_latents_deltas is not None:
@@ -67,9 +66,7 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
     if omini_latents is not None:
         for lat, delta in zip(omini_latents, omini_latents_deltas):
             i_offset, h_offset, w_offset = delta[0,0,0].tolist()
-            print("delta", i_offset, h_offset, w_offset, self.patch_size)
             kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset * self.patch_size, w_offset=w_offset * self.patch_size)
-            print("kontext_ids", kontext_ids)
             img = torch.cat([img, kontext], dim=1)
             img_ids = torch.cat([img_ids, kontext_ids], dim=1)
 
