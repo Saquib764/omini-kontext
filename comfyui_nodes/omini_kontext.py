@@ -31,6 +31,7 @@ def extra_conds_shapes(self, **kwargs):
     out = {}
     omini_latents = kwargs.get("omini_latents", None)
     omini_latents_deltas = kwargs.get("omini_latents_deltas", None)
+    print("omini_latents_deltas", omini_latents_deltas)
     if omini_latents is not None:
         out['omini_latents'] = list([1, 16, sum(map(lambda a: math.prod(a.size()), omini_latents)) // 16])
     if omini_latents_deltas is not None:
