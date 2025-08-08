@@ -22,22 +22,20 @@ def extra_conds(self, **kwargs):
             delta = cond["delta"]
             latents.append(self.process_latent_in(lat))
             deltas.append(delta)
-        out['omini_latents'] = {
-            "latents": comfy.conds.CONDList(latents),
-            "deltas": deltas
-        }
+        out['omini_latents'] = comfy.conds.CONDList(latents)
+        # out['omini_latents_deltas'] = comfy.conds.CONDList(deltas)
     return out
 
-# def extra_conds_shapes(self, **kwargs):
-#     out = self._extra_conds_shapes(**kwargs)
-#     out = {}
-#     omini_latents = kwargs.get("omini_latents", None)
-#     if omini_latents is not None:
-#         out['omini_latents'] = list([1, 16, sum(map(lambda a: math.prod(a.size()), omini_latents)) // 16])
-#     return out
+def extra_conds_shapes(self, **kwargs):
+    out = self._extra_conds_shapes(**kwargs)
+    out = {}
+    omini_latents = kwargs.get("omini_latents", None)
+    if omini_latents is not None:
+        out['omini_latents'] = list([1, 16, sum(map(lambda a: math.prod(a.size()), omini_latents)) // 16])
+    return out
 
 
-def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=None, control=None, transformer_options={}, omini_latents=None, **kwargs):
+def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=None, control=None, transformer_options={}, omini_latents=None, omini_latents_deltas=None, **kwargs):
     print("new_forward")
     bs, c, h_orig, w_orig = x.shape
     patch_size = self.patch_size
@@ -64,8 +62,11 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
             w = max(w, ref.shape[-1] + w_offset)
     
     if omini_latents is not None:
-        for lat, delta in zip(omini_latents["latents"], omini_latents["deltas"]):
+        if omini_latents_deltas is None:
+            omini_latents_deltas = [[0,0,96]] * len(omini_latents)
+        for lat, delta in zip(omini_latents, omini_latents_deltas):
             i_offset, h_offset, w_offset = delta
+            print("Deltas", i_offset, h_offset, w_offset)
             kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset, w_offset=w_offset)
             img = torch.cat([img, kontext], dim=1)
             img_ids = torch.cat([img_ids, kontext_ids], dim=1)
