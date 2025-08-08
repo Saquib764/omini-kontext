@@ -20,6 +20,8 @@ def extra_conds(self, **kwargs):
         for cond in omini_latents:
             lat = cond["latent"]
             delta = cond["delta"]
+            print("lat", lat.shape)
+            print("delta", delta)
             latents.append(self.process_latent_in(lat))
             deltas.append(torch.tensor(delta, device=lat.device))
         out['omini_latents'] = comfy.conds.CONDList(latents)
