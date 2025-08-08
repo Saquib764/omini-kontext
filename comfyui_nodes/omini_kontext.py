@@ -16,18 +16,25 @@ def extra_conds(self, **kwargs):
     omini_latents = kwargs.get("omini_latents", None)
     if omini_latents is not None:
         latents = []
-        for lat in omini_latents:
+        deltas = [] 
+        for cond in omini_latents:
+            lat = cond["latent"]
+            delta = cond["delta"]
             latents.append(self.process_latent_in(lat))
-        out['omini_latents'] = comfy.conds.CONDList(latents)
+            deltas.append(delta)
+        out['omini_latents'] = {
+            "latents": comfy.conds.CONDList(latents),
+            "deltas": deltas
+        }
     return out
 
-def extra_conds_shapes(self, **kwargs):
-    out = self._extra_conds_shapes(**kwargs)
-    out = {}
-    omini_latents = kwargs.get("omini_latents", None)
-    if omini_latents is not None:
-        out['omini_latents'] = list([1, 16, sum(map(lambda a: math.prod(a.size()), omini_latents)) // 16])
-    return out
+# def extra_conds_shapes(self, **kwargs):
+#     out = self._extra_conds_shapes(**kwargs)
+#     out = {}
+#     omini_latents = kwargs.get("omini_latents", None)
+#     if omini_latents is not None:
+#         out['omini_latents'] = list([1, 16, sum(map(lambda a: math.prod(a.size()), omini_latents)) // 16])
+#     return out
 
 
 def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=None, control=None, transformer_options={}, omini_latents=None, **kwargs):
@@ -39,7 +46,6 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
     w_len = ((w_orig + (patch_size // 2)) // patch_size)
     img, img_ids = self.process_img(x)
     img_tokens = img.shape[1]
-    print(omini_latents)
     if ref_latents is not None:
         h = 0
         w = 0
@@ -56,6 +62,13 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
             img_ids = torch.cat([img_ids, kontext_ids], dim=1)
             h = max(h, ref.shape[-2] + h_offset)
             w = max(w, ref.shape[-1] + w_offset)
+    
+    if omini_latents is not None:
+        for lat, delta in zip(omini_latents["latents"], omini_latents["deltas"]):
+            i_offset, h_offset, w_offset = delta
+            kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset, w_offset=w_offset)
+            img = torch.cat([img, kontext], dim=1)
+            img_ids = torch.cat([img_ids, kontext_ids], dim=1)
 
     txt_ids = torch.zeros((bs, context.shape[1], 3), device=x.device, dtype=x.dtype)
     out = self.forward_orig(img, img_ids, context, txt_ids, timestep, y, guidance, control, transformer_options, attn_mask=kwargs.get("attention_mask", None))
@@ -86,9 +99,9 @@ class OminiKontextModelPatch:
 
             # Now backup and replace the extra_conds and extra_conds_shapes methods
             new_model.model._extra_conds = new_model.model.extra_conds
-            new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
+            # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
             new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
-            new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
+            # new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
         return (new_model,)
 
 
@@ -111,7 +124,7 @@ class OminiKontextConditioning:
 
     def append(self, conditioning, latent=None, delta_0=0, delta_1=0, delta_2=0):
         if latent is not None:
-            conditioning = node_helpers.conditioning_set_values(conditioning, {"omini_latents": [latent["samples"]]}, append=True)
+            conditioning = node_helpers.conditioning_set_values(conditioning, {"omini_latents": [{"latent": latent["samples"], "delta": [delta_0, delta_1, delta_2]}]}, append=True)
         return (conditioning, )
 
 
