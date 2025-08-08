@@ -68,10 +68,9 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
             w = max(w, ref.shape[-1] + w_offset)
     
     if omini_latents is not None:
-        print("omini_latents_deltas", omini_latents_deltas)
         for lat, delta in zip(omini_latents, omini_latents_deltas):
             print("delta", delta[0,0,0])
-            i_offset, h_offset, w_offset = delta[0,0,0]
+            i_offset, h_offset, w_offset = delta[0,0,0].tolist()
             print("Deltas", i_offset, h_offset, w_offset)
             kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset, w_offset=w_offset)
             img = torch.cat([img, kontext], dim=1)
