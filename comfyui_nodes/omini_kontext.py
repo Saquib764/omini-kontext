@@ -23,7 +23,7 @@ def extra_conds(self, **kwargs):
             latents.append(self.process_latent_in(lat))
             deltas.append(delta)
         out['omini_latents'] = comfy.conds.CONDList(latents)
-        # out['omini_latents_deltas'] = comfy.conds.CONDList(deltas)
+        out['omini_latents_deltas'] = deltas
     return out
 
 def extra_conds_shapes(self, **kwargs):
