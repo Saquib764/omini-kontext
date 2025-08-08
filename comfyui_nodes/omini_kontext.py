@@ -79,16 +79,16 @@ class OminiKontextModelPatch:
 
     def apply_patch(self, model):
         new_model = model.clone()
-        if is_flux_model(model.get_model_object('diffusion_model')):
-            diffusion_model = model.get_model_object('diffusion_model')
+        if is_flux_model(new_model.get_model_object('diffusion_model')):
+            diffusion_model = new_model.get_model_object('diffusion_model')
             # Replace the forward method with the new one type 
             diffusion_model.forward = types.MethodType(new_forward, diffusion_model)
 
             # Now backup and replace the extra_conds and extra_conds_shapes methods
-            diffusion_model._extra_conds = diffusion_model.extra_conds
-            diffusion_model._extra_conds_shapes = diffusion_model.extra_conds_shapes
-            diffusion_model.extra_conds = types.MethodType(extra_conds, diffusion_model)
-            diffusion_model.extra_conds_shapes = types.MethodType(extra_conds_shapes, diffusion_model)
+            new_model.model._extra_conds = new_model.model.extra_conds
+            new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
+            new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
+            new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
         return (new_model,)
 
 
