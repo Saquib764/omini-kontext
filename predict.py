@@ -10,11 +10,8 @@ from src.pipeline_flux_omini_kontext import FluxOminiKontextPipeline
 import random
 import json
 
-
-
 from utils import (
     ensure_hf_login,
-    cleanup_temp_files,
     optimise_image_condition
 )
 
