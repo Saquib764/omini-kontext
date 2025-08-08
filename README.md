@@ -90,6 +90,7 @@ The following table compares the performance of Omini Kontext model with a chara
 ## 📋 To-do
 - [ ] **Use dataset from HF for training**
 - [ ] **Scrip to push dataset to huggingface**
+- [ ] **Create an easy to use ComfyUI integration, one that uses native comfyui nodes**
 - [x] **Make a data processing script, available in helpers/dataset_creator.ipynb**
 - [x] **Add ways to control location and scale of the reference character**
 - [x] **Speed up by removing irrelevant pixels**
