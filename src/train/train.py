@@ -73,7 +73,7 @@ def main():
     #     split="train"
     # )['train']
     dataset = select_and_load_dataset(
-        src=training_config["dataset"]["src"],
+        dataset_name=training_config["dataset"]["src"],
         delta=training_config["dataset"]["reference_delta"],
         drop_text_prob=training_config["dataset"]["drop_text_prob"],
         # dataset,
