@@ -10,8 +10,7 @@ from huggingface_hub import login, hf_hub_download
 
 
 from .data import (
-    load_and_concatenate_datasets,
-    FluxOminiKontextDataset,
+    select_and_load_dataset,
 )
 from .model import FluxOminiKontextModel
 from .callbacks import TrainingCallback
@@ -73,16 +72,16 @@ def main():
     #     source_field_name="source_tags",
     #     split="train"
     # )['train']
-    dataset = FluxOminiKontextDataset(
+    dataset = select_and_load_dataset(
         src=training_config["dataset"]["src"],
         delta=training_config["dataset"]["reference_delta"],
+        drop_text_prob=training_config["dataset"]["drop_text_prob"],
         # dataset,
         # condition_size=training_config["dataset"]["condition_size"],
         # target_size=training_config["dataset"]["target_size"],
         # image_size=training_config["dataset"]["image_size"],
         # padding=training_config["dataset"]["padding"],
         # condition_type=training_config["condition_type"],
-        # drop_text_prob=training_config["dataset"]["drop_text_prob"],
         # drop_image_prob=training_config["dataset"]["drop_image_prob"],
     )
 

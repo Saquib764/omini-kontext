@@ -1,4 +1,4 @@
-from PIL import Image, ImageFilter, ImageDraw, ImageChops
+from PIL import Image
 import cv2
 import numpy as np
 import torch
@@ -109,14 +109,63 @@ def example_usage():
 if __name__ == "__main__":
     example_usage()
 
+def select_and_load_dataset(dataset_name: str, delta: List[int] = [0, 0, 0], drop_text_prob: float = 0.1, split: str = "train", pil=False):
+    # if dataset_name folder exists, load from there
+    if os.path.exists(dataset_name):
+        return FluxOminiKontextDataset(dataset_name, delta=delta, drop_text_prob=drop_text_prob, split=split, pil=pil)
+    # otherwise, load from huggingface
+    return FluxOminiKontextDatasetHF(dataset_name, delta=delta, drop_text_prob=drop_text_prob, split=split, pil=pil)
+
+class FluxOminiKontextDatasetHF(Dataset):
+    def __init__(
+        self,
+        dataset_name: str,
+        delta: List[int] = [0, 0, 0],
+        drop_text_prob: float = 0.1,
+        split: str = "train",
+    ):
+        self.base_dataset = load_dataset(dataset_name, split=split)
+        self.delta = delta
+
+        self.to_tensor = T.ToTensor()
+
+
+    def __len__(self):
+        return len(self.base_dataset)
+
+    def __getitem__(self, idx):
+        data = self.base_dataset[idx]
+        input_image = data['input_image']
+        target_image = data['target_image']
+        reference_image = data['reference_image']
+
+        prompt = ""
+        reference_delta = np.array(self.delta)
+        return {
+            "input_image": self.to_tensor(input_image),
+            "target_image": self.to_tensor(target_image),
+            "reference_image": self.to_tensor(reference_image),
+            "prompt": prompt,
+            "reference_delta": reference_delta,
+        }
+
+
 class FluxOminiKontextDataset(Dataset):
     """Example dataset for Flux Omini Kontext training"""
     
-    def __init__(self, src: str = 'data/character', delta: List[int] = [0, 0, 0]):
+    def __init__(
+        self, 
+        src: str = 'data/character',
+        delta: List[int] = [0, 0, 0],
+        drop_text_prob: float = 0.1,
+        pil=False
+    ):
         self.init_files = []
         self.reference_files = []
         self.target_files = []
         self.delta = delta
+        self.drop_text_prob = drop_text_prob
+        self.pil = pil
 
         root = src
         for f in os.listdir(f'{root}/start'):
@@ -143,6 +192,14 @@ class FluxOminiKontextDataset(Dataset):
 
         prompt = "add the character to the image"
         reference_delta = np.array(self.delta)
+        if self.pil:
+            return {
+                "input_image": input_image,
+                "target_image": target_image,
+                "reference_image": reference_image,
+                "prompt": prompt,
+                "reference_delta": reference_delta,
+            }
         return {
             "input_image": self.to_tensor(input_image),
             "target_image": self.to_tensor(target_image),
