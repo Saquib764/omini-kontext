@@ -114,7 +114,7 @@ def select_and_load_dataset(dataset_name: str, delta: List[int] = [0, 0, 0], dro
     if os.path.exists(dataset_name):
         return FluxOminiKontextDataset(dataset_name, delta=delta, drop_text_prob=drop_text_prob, split=split, pil=pil)
     # otherwise, load from huggingface
-    return FluxOminiKontextDatasetHF(dataset_name, delta=delta, drop_text_prob=drop_text_prob, split=split, pil=pil)
+    return FluxOminiKontextDatasetHF(dataset_name, delta=delta, drop_text_prob=drop_text_prob, split=split)
 
 class FluxOminiKontextDatasetHF(Dataset):
     def __init__(
