@@ -141,7 +141,7 @@ class FluxOminiKontextDatasetHF(Dataset):
         reference_image = data['reference_image']
 
         # Randomly resize the reference image
-        scale = (0.5+random.random())
+        scale = (1+random.random())/2
         reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
 
 
