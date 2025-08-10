@@ -112,9 +112,9 @@ if __name__ == "__main__":
 def select_and_load_dataset(dataset_name: str, delta: List[int] = [0, 0, 0], drop_text_prob: float = 0.1, split: str = "train", pil=False):
     # if dataset_name folder exists, load from there
     if os.path.exists(dataset_name):
-        return FluxOminiKontextDataset(dataset_name, delta=delta, drop_text_prob=drop_text_prob, split=split, pil=pil)
+        return FluxOminiKontextDataset(dataset_name, delta=delta, drop_text_prob=drop_text_prob, pil=pil)
     # otherwise, load from huggingface
-    return FluxOminiKontextDatasetHF(dataset_name, delta=delta, drop_text_prob=drop_text_prob)
+    return FluxOminiKontextDatasetHF(dataset_name, delta=delta, drop_text_prob=drop_text_prob, split=split)
 
 class FluxOminiKontextDatasetHF(Dataset):
     def __init__(
