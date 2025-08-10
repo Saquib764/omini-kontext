@@ -140,6 +140,12 @@ class FluxOminiKontextDatasetHF(Dataset):
         target_image = data['target_image']
         reference_image = data['reference_image']
 
+        # Make sure the input image is smaller than 768
+        if input_image.width > 768 or input_image.height > 768:
+            scale = 768 / max(input_image.width, input_image.height)
+            input_image = input_image.resize((int(input_image.width*scale//16)*16, int(input_image.height*scale//16)*16))
+            target_image = target_image.resize((int(target_image.width*scale//16)*16, int(target_image.height*scale//16)*16))
+
         # Randomly resize the reference image
         scale = (1+random.random())/2
         reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
@@ -197,6 +203,15 @@ class FluxOminiKontextDataset(Dataset):
         input_image = Image.open(input_image_path).convert("RGB")
         target_image = Image.open(target_image_path).convert("RGB")
         reference_image = Image.open(reference_image_path).convert("RGB")
+
+        # make sure the reference image is smaller than 1024
+        if reference_image.width > 1024 or reference_image.height > 1024:
+            scale = 1024 / max(reference_image.width, reference_image.height)
+            reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
+        
+        # Paste the reference image on white background, of same size as the reference image
+        reference_image = Image.new("RGB", (reference_image.width, reference_image.height), (255, 255, 255))
+        reference_image.paste(reference_image, (0, 0))
 
         prompt = "add the character to the image"
         reference_delta = np.array(self.delta)
