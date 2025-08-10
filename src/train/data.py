@@ -147,8 +147,7 @@ class FluxOminiKontextDatasetHF(Dataset):
             target_image = target_image.resize((int(target_image.width*scale//16)*16, int(target_image.height*scale//16)*16))
 
         # Randomly resize the reference image
-        scale = (1+random.random())/2
-        reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
+        reference_image = reference_image.resize((512, 512))
 
 
         prompt = "add the subject to the image"
@@ -223,6 +222,8 @@ class FluxOminiKontextDataset(Dataset):
                 "prompt": prompt,
                 "reference_delta": reference_delta,
             }
+        # resize the reference image to 512x512
+        reference_image = reference_image.resize((512, 512))
         return {
             "input_image": self.to_tensor(input_image),
             "target_image": self.to_tensor(target_image),
