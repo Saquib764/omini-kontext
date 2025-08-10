@@ -128,6 +128,7 @@ class FluxOminiKontextDatasetHF(Dataset):
         self.delta = delta
 
         self.to_tensor = T.ToTensor()
+        self.drop_text_prob = drop_text_prob
 
 
     def __len__(self):
