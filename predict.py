@@ -95,7 +95,7 @@ class Predictor(BasePredictor):
 
         width, height = image.size
 
-        MAX_SIZE = 1024
+        MAX_SIZE = 1536
         # Compute new width and height, maintaining aspect ratio, with max side = MAX_SIZE
         if max(width, height) > MAX_SIZE:
             if width >= height:
@@ -120,6 +120,8 @@ class Predictor(BasePredictor):
                 height=height,
                 width=width,
                 generator=generator,
+                _auto_resize=False,
+                max_area=width*height
             ).images[0]
 
         finally:
