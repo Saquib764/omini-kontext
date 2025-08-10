@@ -24,13 +24,13 @@ train:
     drop_text_prob: 0.1
 
   sample:
-    - prompt: "Add the character to the image"
-      init_image: "assets/scene_01.png"
-      reference_image: "assets/boy_reference_512.png"
-      
-    - prompt: "Add the character to the image"
-      init_image: "assets/scene_02.png"
-      reference_image: "assets/boy_reference_512.png"
+    - prompt: "Add the honey jar to the image"
+      init_image: "assets/product/scene_01.png"
+      reference_image: "assets/product/honey_large.png"
+
+    - prompt: "replace the honey jar in the image"
+      init_image: "assets/product/scene_02.png"
+      reference_image: "assets/product/honey_small.png"
 
   wandb:
     project: "OminiKontextControl"
