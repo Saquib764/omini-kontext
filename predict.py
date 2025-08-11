@@ -16,9 +16,17 @@ from utils import (
 )
 
 LoRA_MODELS = {
-    "character_insertion": {
-        "lora_path": "saquiboye/omini-kontext-character",
+    "spatial_character_insertion": {
+        "lora_path": "saquiboye/omini-kontext",
         "weight_name": "spatial-character-test.safetensors",
+    },
+    "character_insertion": {
+        "lora_path": "saquiboye/omini-kontext",
+        "weight_name": "character_3000.safetensors",
+    },
+    "product_insertion": {
+        "lora_path": "saquiboye/omini-kontext",
+        "weight_name": "product_2000.safetensors",
     }
 }
 
@@ -54,6 +62,12 @@ class Predictor(BasePredictor):
         num_inference_steps: int = Input(
             description="Number of denoising steps", ge=1, le=150, default=20
         ),
+        lora_strength: float = Input(
+            description="LoRA strength", ge=0.0, le=1.0, default=0.6
+        ),
+        guidance_scale: float = Input(
+            description="Text guidance scale", ge=0.0, le=10.0, default=1.5
+        ),
         seed: int = Input(
             description="Random seed. Leave blank to randomize the seed", default=None
         ),
@@ -84,6 +98,7 @@ class Predictor(BasePredictor):
             weight_name=lora["weight_name"],
             adapter_name="reference"
         )
+        self.pipe.set_adapters("reference", adapter_weights=lora_strength)
 
         # Setup generation parameters
         seed = random.randint(0, 65535) if seed is None else seed
@@ -121,7 +136,8 @@ class Predictor(BasePredictor):
                 width=width,
                 generator=generator,
                 _auto_resize=False,
-                max_area=width*height
+                max_area=width*height,
+                guidance_scale=guidance_scale
             ).images[0]
 
         finally:

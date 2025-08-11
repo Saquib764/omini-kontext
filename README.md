@@ -13,8 +13,6 @@ https://github.com/user-attachments/assets/e3397377-3599-499b-b9c8-77d14b60dd3f
 
 
 
-Try the model live: **[Demo](http://thefluxtrain.com/research/omini-kontext/demo)**
-
 Replicate version: https://replicate.com/thefluxtrain/omini-kontext
 
 If you have trained your own model, you can use it on replicate. You will have to upload the model on HF, and enter the details on replicate.
