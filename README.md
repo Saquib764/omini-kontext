@@ -7,10 +7,7 @@
 
 ## 🚀 Live Demo
 
-<video width="480" controls>
-  <source src="demo.mp4" type="video/mp4">
-</video>
-
+![Demo](demo.mp4)
 
 Try the model live: **[Demo](http://thefluxtrain.com/research/omini-kontext/demo)**
 
