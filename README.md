@@ -7,6 +7,11 @@
 
 ## 🚀 Live Demo
 
+<video width="480" controls>
+  <source src="demo.mp4" type="video/mp4">
+</video>
+
+
 Try the model live: **[Demo](http://thefluxtrain.com/research/omini-kontext/demo)**
 
 Replicate version: https://replicate.com/thefluxtrain/omini-kontext
@@ -89,6 +94,17 @@ The following table compares the performance of Omini Kontext model with a chara
 
 </details>
 
+## Pretrained LoRA models
+
+| Model Name | Delta | Description |
+|------------|-------|-------------|
+| [character_3000.safetensors](https://huggingface.co/saquiboye/omini-kontext/blob/main/character_3000.safetensors) | [0,0,96] | On comfyUI, use cfg=1.5 , LoRA strength = 0.5-0.7. Character in white background. |
+| [spatial-character-test.safetensors](https://huggingface.co/saquiboye/omini-kontext/blob/main/spatial-character-test.safetensors) | [1,0,0] | On comfyUI, use cfg=1.5 , LoRA strength = 0.5-0.7 . Upload the reference image of same size as the base image, with character placed corresponding to where you want it to be. |
+| [product_2000.safetensors](https://huggingface.co/saquiboye/omini-kontext/blob/main/product_2000.safetensors) | [0,0,96] | On comfyUI, use cfg=1.5 , LoRA strength = 0.5-0.7. Product in white background. |
+
+**Notes:**
+1. Sometimes, the product or characters are too big compared to the rest of the scene, simply use a smaller resolution image.
+2. Trained on 512x512 reference image, but works fine with 1024x1024
 
 ## 📋 To-do
 - [ ] Create more demos for various usecases. Community support needed!
