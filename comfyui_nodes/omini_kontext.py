@@ -8,6 +8,7 @@ import comfy.conds
 import comfy.hooks
 import comfy.model_base
 import comfy.utils
+import copy
 
 
 def extra_conds(self, **kwargs):
