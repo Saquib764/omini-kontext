@@ -150,10 +150,6 @@ def new_nunchaku_forward(self, x, timestep, context, y=None, guidance=None, cont
     img, img_ids = self.process_img(x)
     img_tokens = img.shape[1]
 
-
-    print("This is the forward function")
-    print(f"Instance name of self: {self.__class__.__name__}")
-
     ref_latents = kwargs.get("ref_latents")
     if ref_latents is not None:
         h = 0
@@ -326,7 +322,8 @@ class NunchakuOminiKontextPatch:
         diffusion_model.forward = types.MethodType(new_nunchaku_forward, diffusion_model)
 
         # Now backup and replace the extra_conds and extra_conds_shapes methods
-        new_model.model._extra_conds = new_model.model.extra_conds
+        extra_conds_orig = copy.deepcopy(new_model.model.extra_conds)
+        new_model.model._extra_conds = types.MethodType(extra_conds_orig, new_model.model)
         # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
         new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
         # new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
