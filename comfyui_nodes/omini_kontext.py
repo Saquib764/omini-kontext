@@ -129,7 +129,7 @@ class OminiKontextConditioning:
         return (conditioning, )
 
 
-def new_nunchaku_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=None, control=None, transformer_options={}, omini_latents=None, omini_latents_deltas=None, **kwargs):
+def new_nunchaku_forward(self, x, timestep, context, y=None, guidance=None, control=None, transformer_options={}, **kwargs):
 
     bs, c, h_orig, w_orig = x.shape
     patch_size = self.config.get("patch_size", 2)
@@ -143,6 +143,7 @@ def new_nunchaku_forward(self, x, timestep, context, y=None, guidance=None, ref_
     print("This is the forward function")
     print(f"Instance name of self: {self.__class__.__name__}")
 
+    ref_latents = kwargs.get("ref_latents")
     if ref_latents is not None:
         h = 0
         w = 0
@@ -160,6 +161,8 @@ def new_nunchaku_forward(self, x, timestep, context, y=None, guidance=None, ref_
             h = max(h, ref.shape[-2] + h_offset)
             w = max(w, ref.shape[-1] + w_offset)
     
+    omini_latents = kwargs.get("omini_latents")
+    omini_latents_deltas = kwargs.get("omini_latents_deltas")
     if omini_latents is not None:
         for lat, delta in zip(omini_latents, omini_latents_deltas):
             i_offset, h_offset, w_offset = delta[0,0,0].tolist()
