@@ -128,7 +128,7 @@ class OminiKontextConditioning:
         return (conditioning, )
 
 
-class NunchakuOminiKontextLoader:
+class NunchakuOminiKontextPatch:
     @classmethod
     def INPUT_TYPES(s):
         return {"required": {"model": ("MODEL", ),
