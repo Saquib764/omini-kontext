@@ -42,8 +42,6 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
     bs, c, h_orig, w_orig = x.shape
     patch_size = self.patch_size
 
-    print("Self", self)
-
     h_len = ((h_orig + (patch_size // 2)) // patch_size)
     w_len = ((w_orig + (patch_size // 2)) // patch_size)
     img, img_ids = self.process_img(x)
@@ -130,3 +128,27 @@ class OminiKontextConditioning:
         return (conditioning, )
 
 
+class NunchakuOminiKontextLoader:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {"model": ("MODEL", ),
+                             }}
+    RETURN_TYPES = ("MODEL",)
+    OUTPUT_TOOLTIPS = ("The modified diffusion model.",)
+    FUNCTION = "load_omini_kontext"
+
+    CATEGORY = "model_patches/unet"
+
+    def load_omini_kontext(self, model):
+        model_wrapper = model.model.diffusion_model
+        assert isinstance(model_wrapper, ComfyFluxWrapper)
+        transformer = model_wrapper.model
+        model_wrapper.model = None
+        ret_model = copy.deepcopy(model)
+
+        ret_model_wrapper = ret_model.model.diffusion_model
+        assert isinstance(ret_model_wrapper, ComfyFluxWrapper)
+
+        model_wrapper.model = transformer
+        ret_model_wrapper.model = transformer
+        return (ret_model,)
