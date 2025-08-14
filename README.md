@@ -5,6 +5,10 @@
 [![Lightning](https://img.shields.io/badge/Lightning-2.0+-yellow.svg)](https://lightning.ai)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
+
+Update: This repository includes nodes and patches for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) that are compatible with the [Nunchaku](https://github.com/nunchaku-tech/ComfyUI-nunchaku/tree/v0.3.4) extension. So you can use nunchaku version of Flux Kontext model with Omini Kontext at lightning speed.
+
+
 ## 🚀 Live Demo
 
 
@@ -110,6 +114,7 @@ The following table compares the performance of Omini Kontext model with a chara
 ## 📋 To-do
 - [ ] Extend to input multiple references.
 - [ ] Create more demos for various usecases. Community support needed!
+- [x] Add Nunchaku integration in ComfyUI
 - [x] Use dataset from HF for training
 - [x] Scrip to push dataset to huggingface
 - [x] Create an **easy to use ComfyUI integration**, one that uses native comfyui nodes. Scroll to end.
