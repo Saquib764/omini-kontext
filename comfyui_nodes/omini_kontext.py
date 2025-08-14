@@ -131,6 +131,17 @@ class OminiKontextConditioning:
 
 def new_nunchaku_forward(self, x, timestep, context, y=None, guidance=None, control=None, transformer_options={}, **kwargs):
 
+    if isinstance(timestep, torch.Tensor):
+        if timestep.numel() == 1:
+            timestep_float = timestep.item()
+        else:
+            timestep_float = timestep.flatten()[0].item()
+    else:
+        assert isinstance(timestep, float)
+        timestep_float = timestep
+
+    model = self.model
+
     bs, c, h_orig, w_orig = x.shape
     patch_size = self.config.get("patch_size", 2)
     h_len = (h_orig + (patch_size // 2)) // patch_size
