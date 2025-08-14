@@ -168,9 +168,131 @@ def new_nunchaku_forward(self, x, timestep, context, y=None, guidance=None, ref_
             img_ids = torch.cat([img_ids, kontext_ids], dim=1)
 
     txt_ids = torch.zeros((bs, context.shape[1], 3), device=x.device, dtype=x.dtype)
-    out = self.forward_orig(img, img_ids, context, txt_ids, timestep, y, guidance, control, transformer_options, attn_mask=kwargs.get("attention_mask", None))
+
+
+    # load and compose LoRA
+    if self.loras != model.comfy_lora_meta_list:
+        lora_to_be_composed = []
+        for _ in range(max(0, len(model.comfy_lora_meta_list) - len(self.loras))):
+            model.comfy_lora_meta_list.pop()
+            model.comfy_lora_sd_list.pop()
+        for i in range(len(self.loras)):
+            meta = self.loras[i]
+            if i >= len(model.comfy_lora_meta_list):
+                sd = load_state_dict_in_safetensors(meta[0])
+                model.comfy_lora_meta_list.append(meta)
+                model.comfy_lora_sd_list.append(sd)
+            elif model.comfy_lora_meta_list[i] != meta:
+                if meta[0] != model.comfy_lora_meta_list[i][0]:
+                    sd = load_state_dict_in_safetensors(meta[0])
+                    model.comfy_lora_sd_list[i] = sd
+                model.comfy_lora_meta_list[i] = meta
+            lora_to_be_composed.append(({k: v for k, v in model.comfy_lora_sd_list[i].items()}, meta[1]))
+
+        composed_lora = compose_lora(lora_to_be_composed)
+
+        if len(composed_lora) == 0:
+            model.reset_lora()
+        else:
+            if "x_embedder.lora_A.weight" in composed_lora:
+                new_in_channels = composed_lora["x_embedder.lora_A.weight"].shape[1]
+                current_in_channels = model.x_embedder.in_features
+                if new_in_channels < current_in_channels:
+                    model.reset_x_embedder()
+            model.update_lora_params(composed_lora)
+
+    controlnet_block_samples = None if control is None else [y.to(x.dtype) for y in control["input"]]
+    controlnet_single_block_samples = None if control is None else [y.to(x.dtype) for y in control["output"]]
+
+    if self.pulid_pipeline is not None:
+        self.model.transformer_blocks[0].pulid_ca = self.pulid_pipeline.pulid_ca
+
+    if getattr(model, "residual_diff_threshold_multi", 0) != 0 or getattr(model, "_is_cached", False):
+        # A more robust caching strategy
+        cache_invalid = False
+
+        # Check if timestamps have changed or are out of valid range
+        if self._prev_timestep is None:
+            cache_invalid = True
+        elif self._prev_timestep < timestep_float + 1e-5:  # allow a small tolerance to reuse the cache
+            cache_invalid = True
+
+        if cache_invalid:
+            self._cache_context = create_cache_context()
+
+        # Update the previous timestamp
+        self._prev_timestep = timestep_float
+        with cache_context(self._cache_context):
+            if self.customized_forward is None:
+                out = model(
+                    hidden_states=img,
+                    encoder_hidden_states=context,
+                    pooled_projections=y,
+                    timestep=timestep,
+                    img_ids=img_ids,
+                    txt_ids=txt_ids,
+                    guidance=guidance if self.config["guidance_embed"] else None,
+                    controlnet_block_samples=controlnet_block_samples,
+                    controlnet_single_block_samples=controlnet_single_block_samples,
+                ).sample
+            else:
+                out = self.customized_forward(
+                    model,
+                    hidden_states=img,
+                    encoder_hidden_states=context,
+                    pooled_projections=y,
+                    timestep=timestep,
+                    img_ids=img_ids,
+                    txt_ids=txt_ids,
+                    guidance=guidance if self.config["guidance_embed"] else None,
+                    controlnet_block_samples=controlnet_block_samples,
+                    controlnet_single_block_samples=controlnet_single_block_samples,
+                    **self.forward_kwargs,
+                ).sample
+    else:
+        if self.customized_forward is None:
+            out = model(
+                hidden_states=img,
+                encoder_hidden_states=context,
+                pooled_projections=y,
+                timestep=timestep,
+                img_ids=img_ids,
+                txt_ids=txt_ids,
+                guidance=guidance if self.config["guidance_embed"] else None,
+                controlnet_block_samples=controlnet_block_samples,
+                controlnet_single_block_samples=controlnet_single_block_samples,
+            ).sample
+        else:
+            out = self.customized_forward(
+                model,
+                hidden_states=img,
+                encoder_hidden_states=context,
+                pooled_projections=y,
+                timestep=timestep,
+                img_ids=img_ids,
+                txt_ids=txt_ids,
+                guidance=guidance if self.config["guidance_embed"] else None,
+                controlnet_block_samples=controlnet_block_samples,
+                controlnet_single_block_samples=controlnet_single_block_samples,
+                **self.forward_kwargs,
+            ).sample
+    if self.pulid_pipeline is not None:
+        self.model.transformer_blocks[0].pulid_ca = None
+
     out = out[:, :img_tokens]
-    return rearrange(out, "b (h w) (c ph pw) -> b c (h ph) (w pw)", h=h_len, w=w_len, ph=2, pw=2)[:,:,:h_orig,:w_orig]
+    out = rearrange(
+        out,
+        "b (h w) (c ph pw) -> b c (h ph) (w pw)",
+        h=h_len,
+        w=w_len,
+        ph=patch_size,
+        pw=patch_size,
+    )
+    out = out[:, :, :h_orig, :w_orig]
+
+    self._prev_timestep = timestep_float
+    return out
+    
 
 class NunchakuOminiKontextPatch:
     @classmethod
