@@ -27,6 +27,22 @@ def extra_conds(self, **kwargs):
         out['omini_latents_deltas'] = comfy.conds.CONDList(deltas)
     return out
 
+def nunchaku_extra_conds(self, **kwargs):
+    out = self._nunchaku_extra_conds(**kwargs)
+    
+    omini_latents = kwargs.get("omini_latents", None)
+    if omini_latents is not None:
+        latents = []
+        deltas = [] 
+        for cond in omini_latents:
+            lat = cond["latent"]
+            delta = cond["delta"]
+            latents.append(self.process_latent_in(lat))
+            deltas.append(torch.tensor([[[delta]]], device=lat.device))
+        out['omini_latents'] = comfy.conds.CONDList(latents)
+        out['omini_latents_deltas'] = comfy.conds.CONDList(deltas)
+    return out
+
 def extra_conds_shapes(self, **kwargs):
     out = self._extra_conds_shapes(**kwargs)
     out = {}
@@ -322,10 +338,10 @@ class NunchakuOminiKontextPatch:
         diffusion_model.forward = types.MethodType(new_nunchaku_forward, diffusion_model)
 
         # Now backup and replace the extra_conds and extra_conds_shapes methods
-        extra_conds_orig = new_model.model.extra_conds.clone()
-        new_model.model._extra_conds = types.MethodType(extra_conds_orig, new_model.model)
+        # Use unique backup name to avoid conflicts with other patches
+        new_model.model._nunchaku_extra_conds = new_model.model.extra_conds
         # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
-        new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
+        new_model.model.extra_conds = types.MethodType(nunchaku_extra_conds, new_model.model)
         # new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
 
 
