@@ -43,9 +43,6 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
     bs, c, h_orig, w_orig = x.shape
     patch_size = self.patch_size
 
-    print("This is the forward function")
-    print(f"Instance name of self: {self.__class__.__name__}")
-
     h_len = ((h_orig + (patch_size // 2)) // patch_size)
     w_len = ((w_orig + (patch_size // 2)) // patch_size)
     img, img_ids = self.process_img(x)
@@ -132,6 +129,49 @@ class OminiKontextConditioning:
         return (conditioning, )
 
 
+def new_nunchaku_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=None, control=None, transformer_options={}, omini_latents=None, omini_latents_deltas=None, **kwargs):
+
+    bs, c, h_orig, w_orig = x.shape
+    patch_size = self.config.get("patch_size", 2)
+    h_len = (h_orig + (patch_size // 2)) // patch_size
+    w_len = (w_orig + (patch_size // 2)) // patch_size
+
+    img, img_ids = self.process_img(x)
+    img_tokens = img.shape[1]
+
+
+    print("This is the forward function")
+    print(f"Instance name of self: {self.__class__.__name__}")
+
+    if ref_latents is not None:
+        h = 0
+        w = 0
+        for ref in ref_latents:
+            h_offset = 0
+            w_offset = 0
+            if ref.shape[-2] + h > ref.shape[-1] + w:
+                w_offset = w
+            else:
+                h_offset = h
+
+            kontext, kontext_ids = self.process_img(ref, index=1, h_offset=h_offset, w_offset=w_offset)
+            img = torch.cat([img, kontext], dim=1)
+            img_ids = torch.cat([img_ids, kontext_ids], dim=1)
+            h = max(h, ref.shape[-2] + h_offset)
+            w = max(w, ref.shape[-1] + w_offset)
+    
+    if omini_latents is not None:
+        for lat, delta in zip(omini_latents, omini_latents_deltas):
+            i_offset, h_offset, w_offset = delta[0,0,0].tolist()
+            kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset * self.patch_size, w_offset=w_offset * self.patch_size)
+            img = torch.cat([img, kontext], dim=1)
+            img_ids = torch.cat([img_ids, kontext_ids], dim=1)
+
+    txt_ids = torch.zeros((bs, context.shape[1], 3), device=x.device, dtype=x.dtype)
+    out = self.forward_orig(img, img_ids, context, txt_ids, timestep, y, guidance, control, transformer_options, attn_mask=kwargs.get("attention_mask", None))
+    out = out[:, :img_tokens]
+    return rearrange(out, "b (h w) (c ph pw) -> b c (h ph) (w pw)", h=h_len, w=w_len, ph=2, pw=2)[:,:,:h_orig,:w_orig]
+
 class NunchakuOminiKontextPatch:
     @classmethod
     def INPUT_TYPES(s):
@@ -147,21 +187,13 @@ class NunchakuOminiKontextPatch:
         new_model = model.clone()
         diffusion_model = new_model.get_model_object('diffusion_model')
         # Replace the forward method with the new one type 
-        diffusion_model.forward = types.MethodType(new_forward, diffusion_model)
+        diffusion_model.model.forward = types.MethodType(new_nunchaku_forward, diffusion_model)
 
         # Now backup and replace the extra_conds and extra_conds_shapes methods
         new_model.model._extra_conds = new_model.model.extra_conds
         # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
         new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
         # new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
-
-        # model_wrapper = model.model.diffusion_model
-        # transformer = model_wrapper.model
-
-        # print("is flux model", is_flux_model(model_wrapper))
-        # print("is flux model", is_flux_model(transformer))
-        # print("model_wrapper.model", model_wrapper.model)
-        # print("transformer", transformer)
 
 
         return (new_model,)
