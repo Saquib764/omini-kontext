@@ -63,10 +63,10 @@ class Predictor(BasePredictor):
             description="Number of denoising steps", ge=1, le=150, default=20
         ),
         lora_strength: float = Input(
-            description="LoRA strength", ge=0.0, le=1.0, default=0.6
+            description="LoRA strength", ge=0.0, le=1.0, default=0.7
         ),
         guidance_scale: float = Input(
-            description="Text guidance scale", ge=0.0, le=10.0, default=1.5
+            description="Text guidance scale", ge=0.0, le=10.0, default=3.5
         ),
         seed: int = Input(
             description="Random seed. Leave blank to randomize the seed", default=None
