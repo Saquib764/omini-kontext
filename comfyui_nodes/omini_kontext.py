@@ -42,6 +42,8 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
     bs, c, h_orig, w_orig = x.shape
     patch_size = self.patch_size
 
+    print("Self", self)
+
     h_len = ((h_orig + (patch_size // 2)) // patch_size)
     w_len = ((w_orig + (patch_size // 2)) // patch_size)
     img, img_ids = self.process_img(x)
