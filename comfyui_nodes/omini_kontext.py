@@ -149,6 +149,9 @@ class NunchakuOminiKontextLoader:
         ret_model_wrapper = ret_model.model.diffusion_model
         assert isinstance(ret_model_wrapper, ComfyFluxWrapper)
 
+        print("Transformer", transformer)
+        
+
         model_wrapper.model = transformer
         ret_model_wrapper.model = transformer
         return (ret_model,)
