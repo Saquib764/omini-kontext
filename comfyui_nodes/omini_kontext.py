@@ -322,7 +322,7 @@ class NunchakuOminiKontextPatch:
         diffusion_model.forward = types.MethodType(new_nunchaku_forward, diffusion_model)
 
         # Now backup and replace the extra_conds and extra_conds_shapes methods
-        extra_conds_orig = copy.deepcopy(new_model.model.extra_conds)
+        extra_conds_orig = new_model.model.extra_conds.clone()
         new_model.model._extra_conds = types.MethodType(extra_conds_orig, new_model.model)
         # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
         new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
