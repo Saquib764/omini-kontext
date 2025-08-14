@@ -15,6 +15,8 @@ https://github.com/user-attachments/assets/e3397377-3599-499b-b9c8-77d14b60dd3f
 
 Replicate version: https://replicate.com/thefluxtrain/omini-kontext
 
+[Installation guides, workflows, turorials, and demos](https://thefluxtrain.com/research/omini-kontext-model/install/comfy-ui-inference-workflows)
+
 If you have trained your own model, you can use it on replicate. You will have to upload the model on HF, and enter the details on replicate.
 
 OminiKontext is a framework built around Flux.1-Kontext-dev model. We do not alter the model architecture, but rather we play around with 3D RoPE embeddings to enable reference based edits on a given image. 
@@ -106,9 +108,10 @@ The following table compares the performance of Omini Kontext model with a chara
 2. Trained on 512x512 reference image, but works fine with 1024x1024
 
 ## 📋 To-do
+- [ ] Extend to input multiple references.
 - [ ] Create more demos for various usecases. Community support needed!
-- [ ] Use dataset from HF for training
-- [ ] Scrip to push dataset to huggingface
+- [x] Use dataset from HF for training
+- [x] Scrip to push dataset to huggingface
 - [x] Create an **easy to use ComfyUI integration**, one that uses native comfyui nodes. Scroll to end.
 - [x] Make a data processing script, available in helpers/dataset_creator.ipynb
 - [x] Add ways to control location and scale of the reference character
@@ -122,7 +125,7 @@ The following table compares the performance of Omini Kontext model with a chara
 ### Model training Plans
 - [ ] **Person Models**: Develop models for realistic human subjects
 - [ ] **Clothes Models**: Create models for clothing and fashion items
-- [ ] **Subject Models**: Train models for specific objects and items
+- [x] **Subject Models**: Train models for specific objects and items
 - [x] **Character Models**: Train specialized models for anime/cartoon characters
 
 
