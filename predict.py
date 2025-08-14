@@ -49,7 +49,7 @@ class Predictor(BasePredictor):
         ),
         task: str = Input(
             description="Task",
-            choices=["character_insertion", 'custom'],
+            choices=["character_insertion", "spatial_character_insertion", "product_insertion", 'custom'],
             default="character_insertion"
         ),
         delta: str = Input(
