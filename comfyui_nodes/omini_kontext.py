@@ -141,14 +141,11 @@ class NunchakuOminiKontextPatch:
 
     def load_omini_kontext(self, model):
         model_wrapper = model.model.diffusion_model
-        assert isinstance(model_wrapper, ComfyFluxWrapper)
         transformer = model_wrapper.model
         model_wrapper.model = None
         ret_model = copy.deepcopy(model)
 
         ret_model_wrapper = ret_model.model.diffusion_model
-        assert isinstance(ret_model_wrapper, ComfyFluxWrapper)
-
         print("Transformer", transformer)
 
         print("Ret model", ret_model)
