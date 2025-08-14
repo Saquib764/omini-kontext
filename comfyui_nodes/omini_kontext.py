@@ -189,7 +189,7 @@ def new_nunchaku_forward(self, x, timestep, context, y=None, guidance=None, cont
     if omini_latents is not None:
         for lat, delta in zip(omini_latents, omini_latents_deltas):
             i_offset, h_offset, w_offset = delta[0,0,0].tolist()
-            kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset * self.patch_size, w_offset=w_offset * self.patch_size)
+            kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset * patch_size, w_offset=w_offset * patch_size)
             img = torch.cat([img, kontext], dim=1)
             img_ids = torch.cat([img_ids, kontext_ids], dim=1)
 
