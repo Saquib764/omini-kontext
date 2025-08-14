@@ -147,12 +147,41 @@ class NunchakuOminiKontextPatch:
         ret_model = copy.deepcopy(model)
 
         ret_model_wrapper = ret_model.model.diffusion_model
-        print("Transformer", transformer)
 
-        print("Ret model", ret_model)
-        print("Ret model wrapper", ret_model_wrapper)
-        print("Model wrapper", model_wrapper)
-        print("Model", model)
+        import inspect
+        # INSERT_YOUR_CODE
+        if hasattr(model_wrapper, "forward"):
+            print("model_wrapper has a 'forward' function.")
+            print("model_wrapper.forward function source:")
+            source = inspect.getsource(model_wrapper.forward)
+            print(source)
+
+        else:
+            print("model_wrapper does NOT have a 'forward' function.")
+
+        if hasattr(transformer, "forward"):
+            print("transformer has a 'forward' function.")
+            print("transformer.forward function source:")
+            source = inspect.getsource(transformer.forward)
+            print(source)
+
+        if hasattr(ret_model_wrapper, "forward"):
+            print("ret_model_wrapper has a 'forward' function.")
+            print("ret_model_wrapper.forward function source:")
+            source = inspect.getsource(ret_model_wrapper.forward)
+            print(source)
+        else:
+            print("ret_model_wrapper does NOT have a 'forward' function.")
+
+        if hasattr(ret_model, "forward"):
+            print("ret_model has a 'forward' function.")
+            print("ret_model.forward function source:")
+            source = inspect.getsource(ret_model.forward)
+            print(source)
+        else:
+            print("ret_model does NOT have a 'forward' function.")
+
+
         
 
         model_wrapper.model = transformer
