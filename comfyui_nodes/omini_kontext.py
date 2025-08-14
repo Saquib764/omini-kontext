@@ -43,6 +43,9 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
     bs, c, h_orig, w_orig = x.shape
     patch_size = self.patch_size
 
+    print("This is the forward function")
+    print(f"Instance name of self: {self.__class__.__name__}")
+
     h_len = ((h_orig + (patch_size // 2)) // patch_size)
     w_len = ((w_orig + (patch_size // 2)) // patch_size)
     img, img_ids = self.process_img(x)
@@ -141,14 +144,24 @@ class NunchakuOminiKontextPatch:
     CATEGORY = "model_patches/unet"
 
     def load_omini_kontext(self, model):
-        model_wrapper = model.model.diffusion_model
-        transformer = model_wrapper.model
+        new_model = model.clone()
+        diffusion_model = new_model.get_model_object('diffusion_model')
+        # Replace the forward method with the new one type 
+        diffusion_model.forward = types.MethodType(new_forward, diffusion_model)
 
-        print("is flux model", is_flux_model(model_wrapper))
-        print("is flux model", is_flux_model(transformer))
-        print("model_wrapper.model", model_wrapper.model)
-        print("transformer", transformer)
+        # Now backup and replace the extra_conds and extra_conds_shapes methods
+        new_model.model._extra_conds = new_model.model.extra_conds
+        # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
+        new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
+        # new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
 
-        ret_model = copy.deepcopy(model_wrapper)
+        # model_wrapper = model.model.diffusion_model
+        # transformer = model_wrapper.model
 
-        return (ret_model,)
+        # print("is flux model", is_flux_model(model_wrapper))
+        # print("is flux model", is_flux_model(transformer))
+        # print("model_wrapper.model", model_wrapper.model)
+        # print("transformer", transformer)
+
+
+        return (new_model,)
