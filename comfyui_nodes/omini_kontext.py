@@ -10,6 +10,13 @@ import comfy.model_base
 import comfy.utils
 import copy
 
+try:
+    from nunchaku import NunchakuFluxTransformer2dModel
+    from nunchaku.caching.utils import cache_context, create_cache_context
+    from nunchaku.lora.flux.compose import compose_lora
+    from nunchaku.utils import load_state_dict_in_safetensors
+except:
+    pass
 
 def extra_conds(self, **kwargs):
     out = self._extra_conds(**kwargs)
