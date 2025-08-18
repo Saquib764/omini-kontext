@@ -112,6 +112,7 @@ The following table compares the performance of Omini Kontext model with a chara
 2. Trained on 512x512 reference image, but works fine with 1024x1024
 
 ## 📋 To-do
+- [ ] Add Qwen-Image-Edit support
 - [ ] Extend to input multiple references.
 - [ ] Create more demos for various usecases. Community support needed!
 - [x] Add Nunchaku integration in ComfyUI
