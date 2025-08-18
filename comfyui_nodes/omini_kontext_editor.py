@@ -78,7 +78,7 @@ class OminiKontextEditor:
 
     RETURN_TYPES = ("IMAGE", "IMAGE")
     FUNCTION = "do_composite"
-    CATEGORY = "Simple/Image"
+    CATEGORY = "image"
 
     def _push_bg(self, unique_id: str, base_image: Image.Image, reference_image: Image.Image):
         """Send images to browser widget."""
