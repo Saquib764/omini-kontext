@@ -1,9 +1,9 @@
 import torch
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from diffusers.utils import USE_PEFT_BACKEND, scale_lora_layers, unscale_lora_layers, logging
-from diffusers.models.transformer_2d import Transformer2DModelOutput
-
+# from diffusers.models.transformer_2d import Transformer2DModelOutput
+from diffusers.models.modeling_outputs import Transformer2DModelOutput
 
 def forward(
     self,
