@@ -7,7 +7,7 @@ from diffusers.models.modeling_outputs import Transformer2DModelOutput
 
 
 # @functools.lru_cache(maxsize=None)
-def _compute_video_freqs(self, frame, height, width, idx=0):
+def _compute_video_freqs(self, frame, height, width, idx=0, h_offset=0, w_offset=0):
     seq_lens = frame * height * width
     print("ids??", [x // 2 for x in self.axes_dim])
     freqs_pos = self.pos_freqs.split([x // 2 for x in self.axes_dim], dim=1)
@@ -15,13 +15,23 @@ def _compute_video_freqs(self, frame, height, width, idx=0):
 
     freqs_frame = freqs_pos[0][idx : idx + frame].view(frame, 1, 1, -1).expand(frame, height, width, -1)
     if self.scale_rope:
-        freqs_height = torch.cat([freqs_neg[1][-(height - height // 2) :], freqs_pos[1][: height // 2]], dim=0)
+        h_low = -(height - height // 2) + h_offset
+        h_high = height // 2 + h_offset
+        if h_low >= 0:
+            freqs_height = freqs_pos[1][h_low : h_high]
+        else:
+            freqs_height = torch.cat([freqs_neg[1][-h_low :], freqs_pos[1][: h_high]], dim=0)
         freqs_height = freqs_height.view(1, height, 1, -1).expand(frame, height, width, -1)
-        freqs_width = torch.cat([freqs_neg[2][-(width - width // 2) :], freqs_pos[2][: width // 2]], dim=0)
+        w_low = -(width - width // 2) + w_offset
+        w_high = width // 2 + w_offset
+        if w_low >= 0:
+            freqs_width = freqs_pos[2][w_low : w_high]
+        else:
+            freqs_width = torch.cat([freqs_neg[2][-w_low :], freqs_pos[2][: w_high]], dim=0)
         freqs_width = freqs_width.view(1, 1, width, -1).expand(frame, height, width, -1)
     else:
-        freqs_height = freqs_pos[1][:height].view(1, height, 1, -1).expand(frame, height, width, -1)
-        freqs_width = freqs_pos[2][:width].view(1, 1, width, -1).expand(frame, height, width, -1)
+        freqs_height = freqs_pos[1][h_offset:h_offset+height].view(1, height, 1, -1).expand(frame, height, width, -1)
+        freqs_width = freqs_pos[2][w_offset:w_offset+width].view(1, 1, width, -1).expand(frame, height, width, -1)
 
     freqs = torch.cat([freqs_frame, freqs_height, freqs_width], dim=-1).reshape(seq_lens, -1)
     return freqs.clone().contiguous()
@@ -43,17 +53,17 @@ def rope_forward(self, video_fhw, txt_seq_lens, device):
 
     vid_freqs = []
     max_vid_index = 0
-    for idx, fhw in enumerate(video_fhw):
-        frame, height, width = fhw
+    for i, fhw in enumerate(video_fhw):
+        frame, height, width, idx, h_offset, w_offset = fhw
         rope_key = f"{idx}_{height}_{width}"
         print("rope_key", rope_key)
 
         if not torch.compiler.is_compiling():
             if rope_key not in self.rope_cache:
-                self.rope_cache[rope_key] = _compute_video_freqs(self, frame, height, width, idx)
+                self.rope_cache[rope_key] = _compute_video_freqs(self, frame, height, width, idx, h_offset, w_offset)
             video_freq = self.rope_cache[rope_key]
         else:
-            video_freq = _compute_video_freqs(self, frame, height, width, idx)
+            video_freq = _compute_video_freqs(self, frame, height, width, idx, h_offset, w_offset)
         video_freq = video_freq.to(device)
         vid_freqs.append(video_freq)
 
@@ -77,7 +87,7 @@ def forward(
     encoder_hidden_states: torch.Tensor = None,
     encoder_hidden_states_mask: torch.Tensor = None,
     timestep: torch.LongTensor = None,
-    img_shapes: Optional[List[Tuple[int, int, int]]] = None,
+    img_shapes: Optional[List[Tuple[int, int, int, int, int, int]]] = None,
     txt_seq_lens: Optional[List[int]] = None,
     guidance: torch.Tensor = None,  # TODO: this should probably be removed
     attention_kwargs: Optional[Dict[str, Any]] = None,

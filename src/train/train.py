@@ -13,6 +13,7 @@ from .data import (
     select_and_load_dataset,
 )
 from .model import FluxOminiKontextModel
+from .model import QwenOminiImageEditModel
 from .callbacks import TrainingCallback
 
 torch.set_float32_matmul_precision('medium')
@@ -118,16 +119,28 @@ def main():
             print(f"Path {_lora_path} does not exist. Training without LoRA weights.")
 
     # Initialize model
-    trainable_model = FluxOminiKontextModel(
-        flux_pipe_id=config["flux_path"],
-        lora_path = lora_path,
-        lora_config=training_config["lora_config"],
-        device=f"cuda",
-        dtype=getattr(torch, config["dtype"]),
-        optimizer_config=training_config["optimizer"],
-        model_config=config.get("model", {}),
-        gradient_checkpointing=training_config.get("gradient_checkpointing", False),
-    )
+    if config["type"] != "qwen":
+        trainable_model = FluxOminiKontextModel(
+            flux_pipe_id=config["flux_path"],
+            lora_path = lora_path,
+            lora_config=training_config["lora_config"],
+            device=f"cuda",
+            dtype=getattr(torch, config["dtype"]),
+            optimizer_config=training_config["optimizer"],
+            model_config=config.get("model", {}),
+            gradient_checkpointing=training_config.get("gradient_checkpointing", False),
+        )
+    else:
+        trainable_model = QwenOminiImageEditModel(
+            qwen_image_edit_pipe_id=config["qwen_image_edit_pipe_id"],
+            lora_path = lora_path,
+            lora_config=training_config["lora_config"],
+            device=f"cuda",
+            dtype=getattr(torch, config["dtype"]),
+            optimizer_config=training_config["optimizer"],
+            model_config=config.get("model", {}),
+            gradient_checkpointing=training_config.get("gradient_checkpointing", False),
+        )
 
     # Callbacks for logging and saving checkpoints
     training_callbacks = (

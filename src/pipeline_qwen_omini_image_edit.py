@@ -500,6 +500,48 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
 
         return latents, image_latents
 
+    def prepare_reference_latents(
+        self,
+        image,
+        batch_size,
+        num_channels_latents,
+        dtype,
+        device,
+        generator
+    ):
+        # VAE applies 8x compression on images but we must also account for packing which requires
+        # latent height and width to be divisible by 2.
+        height, width = image.size
+        height = 2 * (int(height) // (self.vae_scale_factor * 2))
+        width = 2 * (int(width) // (self.vae_scale_factor * 2))
+
+        shape = (batch_size, 1, num_channels_latents, height, width)
+
+        image_latents = None
+        if image is not None:
+            image = image.to(device=device, dtype=dtype)
+            if image.shape[1] != self.latent_channels:
+                image_latents = self._encode_vae_image(image=image, generator=generator)
+            else:
+                image_latents = image
+            if batch_size > image_latents.shape[0] and batch_size % image_latents.shape[0] == 0:
+                # expand init_latents for batch_size
+                additional_image_per_prompt = batch_size // image_latents.shape[0]
+                image_latents = torch.cat([image_latents] * additional_image_per_prompt, dim=0)
+            elif batch_size > image_latents.shape[0] and batch_size % image_latents.shape[0] != 0:
+                raise ValueError(
+                    f"Cannot duplicate `image` of batch size {image_latents.shape[0]} to {batch_size} text prompts."
+                )
+            else:
+                image_latents = torch.cat([image_latents], dim=0)
+
+            image_latent_height, image_latent_width = image_latents.shape[3:]
+            image_latents = self._pack_latents(
+                image_latents, batch_size, num_channels_latents, image_latent_height, image_latent_width
+            )
+
+        return image_latents
+
     @property
     def guidance_scale(self):
         return self._guidance_scale
@@ -525,6 +567,8 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
     def __call__(
         self,
         image: Optional[PipelineImageInput] = None,
+        reference: Optional[PipelineImageInput] = None,
+        reference_delta: List[int] = [0, 0, 0],
         prompt: Union[str, List[str]] = None,
         negative_prompt: Union[str, List[str]] = None,
         true_cfg_scale: float = 4.0,
@@ -669,6 +713,14 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
             image = self.image_processor.preprocess(image, calculated_height, calculated_width)
             image = image.unsqueeze(2)
 
+        reference_latents = None
+        reference_height = None
+        reference_width = None
+        if reference is not None and not (isinstance(reference, torch.Tensor) and reference.size(1) == self.latent_channels):
+            reference_height, reference_width = reference.size
+            reference = self.image_processor.preprocess(reference, reference_height, reference_width)
+            reference = reference.unsqueeze(2)
+
         has_neg_prompt = negative_prompt is not None or (
             negative_prompt_embeds is not None and negative_prompt_embeds_mask is not None
         )
@@ -706,10 +758,25 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
             generator,
             latents,
         )
+        if reference_latents is not None:
+            reference_latents = self.prepare_reference_latents(
+                reference_latents,
+                batch_size * num_images_per_prompt,
+                num_channels_latents,
+                prompt_embeds.dtype,
+                device,
+                generator,
+            )
+            if image_latents is not None:
+                image_latents = torch.cat([image_latents, reference_latents], dim=1)
+            else:
+                image_latents = reference_latents
+
         img_shapes = [
             [
-                (1, height // self.vae_scale_factor // 2, width // self.vae_scale_factor // 2),
-                (1, calculated_height // self.vae_scale_factor // 2, calculated_width // self.vae_scale_factor // 2),
+                (1, height // self.vae_scale_factor // 2, width // self.vae_scale_factor // 2, 0,0,0),
+                (1, calculated_height // self.vae_scale_factor // 2, calculated_width // self.vae_scale_factor // 2, 1,0,0),
+                (1, reference_height // self.vae_scale_factor // 2, reference_width // self.vae_scale_factor // 2, *reference_delta),
             ]
         ] * batch_size
 
