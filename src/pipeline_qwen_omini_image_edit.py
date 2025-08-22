@@ -28,7 +28,7 @@ from diffusers.utils import is_torch_xla_available, logging, replace_example_doc
 from diffusers.utils.torch_utils import randn_tensor
 from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from diffusers.pipelines.qwenimage.pipeline_output import QwenImagePipelineOutput
-
+from src.qwen_omini_image_edit_utils import forward
 
 if is_torch_xla_available():
     import torch_xla.core.xla_model as xm
@@ -764,7 +764,19 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
                 # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
                 timestep = t.expand(latents.shape[0]).to(latents.dtype)
                 with self.transformer.cache_context("cond"):
-                    noise_pred = self.transformer(
+                    # noise_pred = self.transformer(
+                    #     hidden_states=latent_model_input,
+                    #     timestep=timestep / 1000,
+                    #     guidance=guidance,
+                    #     encoder_hidden_states_mask=prompt_embeds_mask,
+                    #     encoder_hidden_states=prompt_embeds,
+                    #     img_shapes=img_shapes,
+                    #     txt_seq_lens=txt_seq_lens,
+                    #     attention_kwargs=self.attention_kwargs,
+                    #     return_dict=False,
+                    # )[0]
+                    noise_pred = forward(
+                        self.transformer,
                         hidden_states=latent_model_input,
                         timestep=timestep / 1000,
                         guidance=guidance,
