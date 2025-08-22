@@ -29,6 +29,7 @@ from diffusers.utils.torch_utils import randn_tensor
 from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from diffusers.pipelines.qwenimage.pipeline_output import QwenImagePipelineOutput
 from src.qwen_omini_image_edit_utils import forward
+from PIL import Image
 
 if is_torch_xla_available():
     import torch_xla.core.xla_model as xm
@@ -505,13 +506,14 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
         image,
         batch_size,
         num_channels_latents,
+        height,
+        width,
         dtype,
         device,
         generator
     ):
         # VAE applies 8x compression on images but we must also account for packing which requires
         # latent height and width to be divisible by 2.
-        height, width = image.size
         height = 2 * (int(height) // (self.vae_scale_factor * 2))
         width = 2 * (int(width) // (self.vae_scale_factor * 2))
 
@@ -670,7 +672,8 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
             returning a tuple, the first element is a list with the generated images.
         """
         image_size = image[0].size if isinstance(image, list) else image.size
-        calculated_width, calculated_height, _ = calculate_dimensions(1024 * 1024, image_size[0] / image_size[1])
+        # calculated_width, calculated_height, _ = calculate_dimensions(1024 * 1024, image_size[0] / image_size[1])
+        calculated_width, calculated_height = image_size
         height = height or calculated_height
         width = width or calculated_width
 
@@ -717,7 +720,13 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
         reference_height = None
         reference_width = None
         if reference is not None and not (isinstance(reference, torch.Tensor) and reference.size(1) == self.latent_channels):
-            reference_height, reference_width = reference.size
+            reference_width, reference_height = reference.size
+            
+            # _prompt_image = Image.new("RGB", (reference_width + calculated_width, reference_height + calculated_height), (0, 0, 0))
+            # _prompt_image.paste(reference, (0, 0))
+            # _prompt_image.paste(prompt_image, (reference_width, 0))
+            # prompt_image = _prompt_image
+                
             reference = self.image_processor.preprocess(reference, reference_height, reference_width)
             reference = reference.unsqueeze(2)
 
@@ -758,20 +767,19 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
             generator,
             latents,
         )
-        if reference_latents is not None:
-            reference_latents = self.prepare_reference_latents(
-                reference_latents,
-                batch_size * num_images_per_prompt,
-                num_channels_latents,
-                prompt_embeds.dtype,
-                device,
-                generator,
-            )
-            if image_latents is not None:
-                image_latents = torch.cat([image_latents, reference_latents], dim=1)
-            else:
-                image_latents = reference_latents
-
+        reference_latents = self.prepare_reference_latents(
+            reference,
+            batch_size * num_images_per_prompt,
+            num_channels_latents,
+            reference_height,
+            reference_width,
+            prompt_embeds.dtype,
+            device,
+            generator,
+        )
+        image_latents = torch.cat([image_latents, reference_latents], dim=1)
+        
+        print(width, height, calculated_width, calculated_height, reference_width, reference_height, image_latents.shape)
         img_shapes = [
             [
                 (1, height // self.vae_scale_factor // 2, width // self.vae_scale_factor // 2, 0,0,0),
@@ -858,7 +866,8 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
 
                 if do_true_cfg:
                     with self.transformer.cache_context("uncond"):
-                        neg_noise_pred = self.transformer(
+                        neg_noise_pred = forward(
+                            self.transformer,
                             hidden_states=latent_model_input,
                             timestep=timestep / 1000,
                             guidance=guidance,

@@ -9,7 +9,6 @@ from diffusers.models.modeling_outputs import Transformer2DModelOutput
 # @functools.lru_cache(maxsize=None)
 def _compute_video_freqs(self, frame, height, width, idx=0, h_offset=0, w_offset=0):
     seq_lens = frame * height * width
-    print("ids??", [x // 2 for x in self.axes_dim])
     freqs_pos = self.pos_freqs.split([x // 2 for x in self.axes_dim], dim=1)
     freqs_neg = self.neg_freqs.split([x // 2 for x in self.axes_dim], dim=1)
 
@@ -20,14 +19,14 @@ def _compute_video_freqs(self, frame, height, width, idx=0, h_offset=0, w_offset
         if h_low >= 0:
             freqs_height = freqs_pos[1][h_low : h_high]
         else:
-            freqs_height = torch.cat([freqs_neg[1][-h_low :], freqs_pos[1][: h_high]], dim=0)
+            freqs_height = torch.cat([freqs_neg[1][h_low :], freqs_pos[1][: h_high]], dim=0)
         freqs_height = freqs_height.view(1, height, 1, -1).expand(frame, height, width, -1)
         w_low = -(width - width // 2) + w_offset
         w_high = width // 2 + w_offset
         if w_low >= 0:
             freqs_width = freqs_pos[2][w_low : w_high]
         else:
-            freqs_width = torch.cat([freqs_neg[2][-w_low :], freqs_pos[2][: w_high]], dim=0)
+            freqs_width = torch.cat([freqs_neg[2][w_low :], freqs_pos[2][: w_high]], dim=0)
         freqs_width = freqs_width.view(1, 1, width, -1).expand(frame, height, width, -1)
     else:
         freqs_height = freqs_pos[1][h_offset:h_offset+height].view(1, height, 1, -1).expand(frame, height, width, -1)
@@ -41,7 +40,6 @@ def rope_forward(self, video_fhw, txt_seq_lens, device):
     Args: video_fhw: [frame, height, width] a list of 3 integers representing the shape of the video Args:
     txt_length: [bs] a list of 1 integers representing the length of the text
     """
-    print("new rope")
     if self.pos_freqs.device != device:
         self.pos_freqs = self.pos_freqs.to(device)
         self.neg_freqs = self.neg_freqs.to(device)
@@ -56,7 +54,6 @@ def rope_forward(self, video_fhw, txt_seq_lens, device):
     for i, fhw in enumerate(video_fhw):
         frame, height, width, idx, h_offset, w_offset = fhw
         rope_key = f"{idx}_{height}_{width}"
-        print("rope_key", rope_key)
 
         if not torch.compiler.is_compiling():
             if rope_key not in self.rope_cache:
@@ -77,6 +74,8 @@ def rope_forward(self, video_fhw, txt_seq_lens, device):
     max_len = max(txt_seq_lens)
     txt_freqs = self.pos_freqs[max_vid_index : max_vid_index + max_len, ...]
     vid_freqs = torch.cat(vid_freqs, dim=0)
+
+    print(txt_freqs.shape)
 
     return vid_freqs, txt_freqs
 
@@ -117,7 +116,6 @@ def forward(
         If `return_dict` is True, an [`~models.transformer_2d.Transformer2DModelOutput`] is returned, otherwise a
         `tuple` where the first element is the sample tensor.
     """
-    print("new forward")
     if attention_kwargs is not None:
         attention_kwargs = attention_kwargs.copy()
         lora_scale = attention_kwargs.pop("scale", 1.0)
@@ -149,7 +147,6 @@ def forward(
     )
 
     image_rotary_emb = rope_forward(self.pos_embed, img_shapes, txt_seq_lens, device=hidden_states.device)
-    print("img_emb", img_shapes)
 
     for index_block, block in enumerate(self.transformer_blocks):
         if torch.is_grad_enabled() and self.gradient_checkpointing:
