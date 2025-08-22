@@ -16,6 +16,10 @@ from utils import (
 )
 
 LoRA_MODELS = {
+    "none": {
+        "lora_path": None,
+        "weight_name": None,
+    },
     "spatial_character_insertion": {
         "lora_path": "saquiboye/omini-kontext",
         "weight_name": "spatial-character-test.safetensors",
@@ -84,21 +88,22 @@ class Predictor(BasePredictor):
         delta = json.loads(delta)
 
         self.pipe.unload_lora_weights()
-
+        lora = None
         if task == 'custom':
             lora = {
                 "lora_path": lora_path,
                 "weight_name": lora_weight_name
             }
-        else:
+        elif task != 'none':
             lora = LoRA_MODELS[task]
 
-        self.pipe.load_lora_weights(
-            lora["lora_path"],
-            weight_name=lora["weight_name"],
-            adapter_name="reference"
-        )
-        self.pipe.set_adapters("reference", adapter_weights=lora_strength)
+        if lora is not None:
+            self.pipe.load_lora_weights(
+                lora["lora_path"],
+                weight_name=lora["weight_name"],
+                adapter_name="reference"
+            )
+            self.pipe.set_adapters("reference", adapter_weights=lora_strength)
 
         # Setup generation parameters
         seed = random.randint(0, 65535) if seed is None else seed
@@ -106,7 +111,9 @@ class Predictor(BasePredictor):
         generator = torch.Generator("cuda").manual_seed(seed)
 
         image = Image.open(image).convert("RGB")
-        reference_image = Image.open(reference_image).convert("RGB")
+        has_reference = reference_image is not None
+        if has_reference:
+            reference_image = Image.open(reference_image).convert("RGB")
 
         width, height = image.size
 
@@ -122,15 +129,17 @@ class Predictor(BasePredictor):
             width = int((new_width//16) * 16)
             height = int((new_height//16) * 16)
             image = image.resize((width, height), Image.LANCZOS)
-            reference_image = reference_image.resize((width, height), Image.LANCZOS)
+            if has_reference:
+                reference_image = reference_image.resize((width, height), Image.LANCZOS)
         
         try:
-            optimised_reference, new_reference_delta = optimise_image_condition(reference_image, delta)
+            if has_reference:
+                optimised_reference, new_reference_delta = optimise_image_condition(reference_image, delta)
             result_img = self.pipe(
                 prompt=prompt,
                 image=image,
-                reference=optimised_reference,
-                reference_delta=new_reference_delta,
+                reference=optimised_reference if has_reference else None,
+                reference_delta=new_reference_delta if has_reference else None,
                 num_inference_steps=num_inference_steps,
                 height=height,
                 width=width,
