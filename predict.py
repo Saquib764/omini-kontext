@@ -83,8 +83,8 @@ class Predictor(BasePredictor):
         )
     ) -> Path:
         """Run a single prediction on the model"""
-        if image is None or reference_image is None:
-            raise ValueError("Both 'image' and 'reference_image' must be provided.")
+        if image is None:
+            raise ValueError("'image' must be provided.")
         delta = json.loads(delta)
 
         self.pipe.unload_lora_weights()
