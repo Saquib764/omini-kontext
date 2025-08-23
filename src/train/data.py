@@ -210,22 +210,27 @@ class FluxOminiKontextDataset(Dataset):
         reference_image = Image.open(reference_image_path).convert("RGB")
 
         # make sure the input image is smaller than 1024
-        if input_image.width > 1024 or input_image.height > 1024:
-            scale = 1024 / max(input_image.width, input_image.height)
-            input_image = input_image.resize((int(input_image.width*scale//16)*16, int(input_image.height*scale//16)*16))
-            target_image = target_image.resize((int(target_image.width*scale//16)*16, int(target_image.height*scale//16)*16))
+        # if input_image.width > 1024 or input_image.height > 1024:
+        #     scale = 1024 / max(input_image.width, input_image.height)
+        #     input_image = input_image.resize((int(input_image.width*scale//16)*16, int(input_image.height*scale//16)*16))
+        #     target_image = target_image.resize((int(target_image.width*scale//16)*16, int(target_image.height*scale//16)*16))
 
-            if self.spatial:
-                reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
+        #     if self.spatial:
+        #         reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
 
         # make sure the reference image is smaller than 1024
-        if reference_image.width > 1024 or reference_image.height > 1024:
-            scale = 1024 / max(reference_image.width, reference_image.height)
-            reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
+        # if reference_image.width > 1024 or reference_image.height > 1024:
+        #     scale = 1024 / max(reference_image.width, reference_image.height)
+        #     reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
         
         # Paste the reference image on white background, of same size as the reference image
         reference_image = Image.new("RGB", (reference_image.width, reference_image.height), (255, 255, 255))
-        reference_image.paste(reference_image, (0, 0))
+        # random resize and random paste the reference image on the white background
+        scale = random.uniform(0.9, 1.1)
+        reference_image = reference_image.resize((int(reference_image.width*scale), int(reference_image.height*scale)))
+        x = random.randint(0, 50)
+        y = random.randint(0, 50)
+        reference_image.paste(reference_image, (x, y))
 
         prompt = "add the character to the image"
         reference_delta = np.array(self.delta)
