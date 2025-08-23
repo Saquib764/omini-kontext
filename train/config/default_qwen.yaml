@@ -11,7 +11,7 @@ train:
   save_interval: 1000
   sample_interval: 100
   max_steps: -1
-  gradient_checkpointing: false
+  gradient_checkpointing: true
   save_path: "runs"
 
   resume_training_from_last_checkpoint: false
