@@ -76,6 +76,7 @@ def main():
         dataset_name=training_config["dataset"]["src"],
         delta=training_config["dataset"]["reference_delta"],
         drop_text_prob=training_config["dataset"]["drop_text_prob"],
+        spatial=training_config["dataset"]["spatial"],
         # dataset,
         # condition_size=training_config["dataset"]["condition_size"],
         # target_size=training_config["dataset"]["target_size"],
