@@ -231,7 +231,7 @@ class FluxOminiKontextDataset(Dataset):
         reference_delta = np.array(self.delta)
         if self.spatial:
             reference_image, reference_delta = optimise_image_condition(reference_image, reference_delta)
-            print(f"Optimised reference image with delta={reference_delta}")
+            print(f"Optimised reference image with delta={reference_delta}, size={reference_image.size}")
         if self.pil:
             return {
                 "input_image": input_image,
