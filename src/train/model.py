@@ -306,13 +306,14 @@ class QwenOminiImageEditModel(L.LightningModule):
         num_images_per_prompt = 1
 
         device = self.qwen_image_edit_pipe._execution_device
-
         # Prepare inputs
         with torch.no_grad():
             # Prepare input image
-            height, width = input_images[0].size
-            reference_height, reference_width = reference_images[0].size
+            _, _, height, width = input_images.shape
+            _, _, reference_height, reference_width = reference_images.shape
 
+            prompt_image = input_images
+            num_channels_latents = self.qwen_image_edit_pipe.transformer.config.in_channels // 4
             # Prepare text input
             prompt_embeds, prompt_embeds_mask = self.qwen_image_edit_pipe.encode_prompt(
                 image=prompt_image,
@@ -321,37 +322,44 @@ class QwenOminiImageEditModel(L.LightningModule):
                 num_images_per_prompt=num_images_per_prompt,
                 max_sequence_length=max_sequence_length,
             )
+            txt_seq_lens = prompt_embeds_mask.sum(dim=1).tolist() if prompt_embeds_mask is not None else None
 
-            prompt_image = input_images
             input_images = self.qwen_image_edit_pipe.image_processor.preprocess(input_images, height, width)
             reference_images = self.qwen_image_edit_pipe.image_processor.preprocess(reference_images, reference_height, reference_width)
             target_images = self.qwen_image_edit_pipe.image_processor.preprocess(target_images, height, width)
+
+            input_images = input_images.unsqueeze(2)
+            reference_images = reference_images.unsqueeze(2)
+            target_images = target_images.unsqueeze(2)
           
           
             x_0 = self.qwen_image_edit_pipe.prepare_reference_latents(
                 target_images,
                 num_images_per_prompt,
                 num_channels_latents,
+                height,
+                width,
                 prompt_embeds.dtype,
                 device,
-                generator,
             )
             x_init = self.qwen_image_edit_pipe.prepare_reference_latents(
                 input_images,
                 num_images_per_prompt,
                 num_channels_latents,
+                height,
+                width,
                 prompt_embeds.dtype,
                 device,
-                generator,
             )
             # Prepare reference image with delta
             x_ref = self.qwen_image_edit_pipe.prepare_reference_latents(
                 reference_images,
                 num_images_per_prompt,
                 num_channels_latents,
+                reference_height,
+                reference_width,
                 prompt_embeds.dtype,
                 device,
-                generator,
             )
             
             # Apply position delta to reference image IDs
@@ -364,7 +372,7 @@ class QwenOminiImageEditModel(L.LightningModule):
                 [
                     (1, height // self.qwen_image_edit_pipe.vae_scale_factor // 2, width // self.qwen_image_edit_pipe.vae_scale_factor // 2, 0,0,0),
                     (1, height // self.qwen_image_edit_pipe.vae_scale_factor // 2, width // self.qwen_image_edit_pipe.vae_scale_factor // 2, 1,0,0),
-                    (1, reference_height // self.qwen_image_edit_pipe.vae_scale_factor // 2, reference_width // self.qwen_image_edit_pipe.vae_scale_factor // 2, *reference_delta),
+                    (1, reference_height // self.qwen_image_edit_pipe.vae_scale_factor // 2, reference_width // self.qwen_image_edit_pipe.vae_scale_factor // 2, *delta),
                 ]
             ]
 
@@ -394,7 +402,7 @@ class QwenOminiImageEditModel(L.LightningModule):
             encoder_hidden_states=prompt_embeds,
             img_shapes=img_shapes,
             txt_seq_lens=txt_seq_lens,
-            attention_kwargs=self.attention_kwargs,
+            # attention_kwargs=self.qwen_image_edit_pipe.attention_kwargs,
             return_dict=False,
         )[0]
         pred = pred[:, : x_t.size(1)]

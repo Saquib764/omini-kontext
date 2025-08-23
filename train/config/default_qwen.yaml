@@ -8,10 +8,10 @@ train:
   batch_size: 1
   accumulate_grad_batches: 1
   dataloader_workers: 5
-  save_interval: 1000
+  save_interval: 500
   sample_interval: 100
   max_steps: -1
-  gradient_checkpointing: true
+  gradient_checkpointing: false
   save_path: "runs"
 
   resume_training_from_last_checkpoint: false
@@ -20,7 +20,7 @@ train:
   resume_training_from_checkpoint_path: "runs/20250127-114531/ckpt/1000"
 
   dataset:
-    src: "data/character"
+    src: "data/character-spatial"
     reference_delta: [1, 0, 0]
     spatial: true
     
@@ -47,10 +47,10 @@ train:
     project: "OminiKontextControl"
 
   lora_config:
-    r: 16
-    lora_alpha: 16
+    r: 8
+    lora_alpha: 8
     init_lora_weights: "gaussian"
-    target_modules: "to_k|to_q|to_v|to_out.0"
+    target_modules: ["to_k", "to_q", "to_v", "to_out.0"]
 
   optimizer:
     type: "Prodigy"

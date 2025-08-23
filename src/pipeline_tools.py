@@ -75,7 +75,6 @@ def optimise_image_condition(image: Image.Image, delta=[0,0,0]) -> Image.Image:
         rgb = arr[..., :3]
     else:
         rgb = arr
-    
     # convert to b/w, and find bounding box of non-white part of image
     bw = np.mean(rgb, axis=-1)
     nonwhite_mask = bw < 240

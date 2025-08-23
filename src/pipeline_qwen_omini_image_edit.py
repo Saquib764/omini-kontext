@@ -455,7 +455,7 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
         width,
         dtype,
         device,
-        generator,
+        generator=None,
         latents=None,
     ):
         # VAE applies 8x compression on images but we must also account for packing which requires
@@ -510,7 +510,7 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
         width,
         dtype,
         device,
-        generator
+        generator=None
     ):
         # VAE applies 8x compression on images but we must also account for packing which requires
         # latent height and width to be divisible by 2.
