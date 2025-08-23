@@ -6,6 +6,7 @@ import json
 from typing import Tuple
 import random
 import time
+import math
 
 import torch
 import numpy as np
@@ -120,6 +121,23 @@ class OminiKontextEditor:
         # Resize reference image
         scaled_ref = reference_img.resize((ref_width, ref_height), Image.LANCZOS)
         
+        # Apply rotation if specified
+        angle = reference_settings.get('angle', 0)
+        if angle != 0:
+            # Expand the image to accommodate rotation
+            expanded_size = int(max(ref_width, ref_height) * 1.5)
+            expanded_img = Image.new('RGBA', (expanded_size, expanded_size), (0, 0, 0, 0))
+            
+            # Center the scaled reference image on the expanded canvas
+            paste_x = (expanded_size - ref_width) // 2
+            paste_y = (expanded_size - ref_height) // 2
+            expanded_img.paste(scaled_ref, (paste_x, paste_y))
+            
+            # Rotate the expanded image
+            rotated_img = expanded_img.rotate(-angle, expand=True, resample=Image.BICUBIC)
+            scaled_ref = rotated_img
+            
+        
         # Ensure the scaled reference has proper alpha channel
         if scaled_ref.mode != 'RGBA':
             scaled_ref = scaled_ref.convert('RGBA')
@@ -127,6 +145,21 @@ class OminiKontextEditor:
         # Calculate position in the final image coordinates
         left = int(reference_settings.get('left', 0) / canvas_scale)
         top = int(reference_settings.get('top', 0) / canvas_scale)
+        
+        # Adjust position for rotated image to maintain center alignment
+        if angle != 0:
+            # Get the rotated image dimensions
+            angle_rad = angle * math.pi / 180
+            rotated_width, rotated_height = scaled_ref.size
+            # Adjust position to keep the center of the rotated image at the same point
+
+            diag = math.sqrt(ref_width**2 + ref_height**2)
+            corner_angle = math.atan2(ref_width, ref_height)
+
+            rotation_x = diag * math.sin(corner_angle - angle_rad)
+            rotation_y = diag * math.cos(corner_angle - angle_rad)
+            left = left - rotated_width // 2 + int(rotation_x // 2)
+            top = top - rotated_height // 2 + int(rotation_y // 2)
         
         # Create a proper mask for compositing
         # If the image has transparency, use it as the mask
@@ -259,6 +292,7 @@ def register_upload_api():
                     'top': settings.get('top'),
                     'scaleX': settings.get('scaleX'),
                     'scaleY': settings.get('scaleY'),
+                    'angle': settings.get('angle'),
                     'canvasWidth': settings.get('canvasWidth'),
                     'canvasHeight': settings.get('canvasHeight'),
                     'overallScale': settings.get('overallScale')

@@ -16,9 +16,9 @@ app.registerExtension({
     nodeType.prototype.onNodeCreated = function () {
       const r = onNodeCreated?.apply(this, arguments);
 
-      // Initialize saved reference image state
+                  // Initialize saved reference image state
       if (!this.savedRefImageState) {
-        this.savedRefImageState = { left: null, top: null, scaleX: null, scaleY: null };
+        this.savedRefImageState = { left: null, top: null, scaleX: null, scaleY: null, angle: null };
       }
 
       // Utility function to send settings to backend
@@ -73,6 +73,7 @@ app.registerExtension({
           top: refImage.top,
           scaleX: refImage.scaleX,
           scaleY: refImage.scaleY,
+          angle: refImage.angle,
           canvasWidth: fabricCanvas.width,
           canvasHeight: fabricCanvas.height,
           overallScale: this.overallScale
@@ -167,14 +168,15 @@ app.registerExtension({
             refImg.scale(scale);
             
             // Determine initial position and scale
-            let settings = { top: null, left: null, scaleX: null, scaleY: null };
+            let settings = { top: null, left: null, scaleX: null, scaleY: null, angle: null };
             
             if (reference_settings) {
               settings = {
                 top: reference_settings.top,
                 left: reference_settings.left,
                 scaleX: reference_settings.scaleX,
-                scaleY: reference_settings.scaleY
+                scaleY: reference_settings.scaleY,
+                angle: reference_settings.angle || 0
               };
             } else if (this.savedRefImageState.top !== null) {
               settings = { ...this.savedRefImageState };
@@ -184,7 +186,8 @@ app.registerExtension({
                 top: (canvasHeight - refImg.getScaledHeight()) / 2,
                 left: (canvasWidth - refImg.getScaledWidth()) / 2,
                 scaleX: scale,
-                scaleY: scale
+                scaleY: scale,
+                angle: 0
               };
             }
 
@@ -197,12 +200,13 @@ app.registerExtension({
               top: settings.top,
               scaleX: settings.scaleX,
               scaleY: settings.scaleY,
+              angle: settings.angle,
               selectable: true,
               evented: true,
               hasControls: true,
               hasBorders: true,
-              hasRotatingPoint: false,
-              lockRotation: true
+              hasRotatingPoint: true,
+              lockRotation: false
             });
             
             fabricCanvas.add(refImg);
@@ -215,11 +219,14 @@ app.registerExtension({
               this.savedRefImageState.top = refImg.top;
               this.savedRefImageState.scaleX = refImg.scaleX;
               this.savedRefImageState.scaleY = refImg.scaleY;
+              this.savedRefImageState.angle = refImg.angle;
+              console.log("savedRefImageState", this.savedRefImageState);
               sendReferenceSettings();
             };
             
             refImg.on('moving', updateSettings);
             refImg.on('scaling', updateSettings);
+            refImg.on('rotating', updateSettings);
             
             fabricCanvas.requestRenderAll();
           }
