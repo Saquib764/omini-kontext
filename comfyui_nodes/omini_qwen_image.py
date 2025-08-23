@@ -1,4 +1,5 @@
-
+import torch
+import types
 import comfy.ldm.flux.model
 
 
@@ -116,7 +117,7 @@ def new_forward(
     hidden_states = hidden_states.permute(0, 3, 1, 4, 2, 5)
     return hidden_states.reshape(orig_shape)[:, :, :, :x.shape[-2], :x.shape[-1]]
 
-class OminiKontextModelPatch:
+class OminiQwenImageEditModelPatch:
     @classmethod
     def INPUT_TYPES(s):
         return {"required": { "model": ("MODEL", ),
@@ -128,15 +129,14 @@ class OminiKontextModelPatch:
 
     def apply_patch(self, model):
         new_model = model.clone()
-        if is_flux_model(new_model.get_model_object('diffusion_model')):
-            diffusion_model = new_model.get_model_object('diffusion_model')
-            # Replace the forward method with the new one type 
-            diffusion_model.forward = types.MethodType(new_forward, diffusion_model)
+        diffusion_model = new_model.get_model_object('diffusion_model')
+        # Replace the forward method with the new one type 
+        diffusion_model.forward = types.MethodType(new_forward, diffusion_model)
 
-            # Now backup and replace the extra_conds and extra_conds_shapes methods
-            new_model.model._extra_conds = new_model.model.extra_conds
-            # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
-            new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
-            # new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
+        # Now backup and replace the extra_conds and extra_conds_shapes methods
+        new_model.model._extra_conds = new_model.model.extra_conds
+        # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
+        new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
+        # new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)
         return (new_model,)
 
