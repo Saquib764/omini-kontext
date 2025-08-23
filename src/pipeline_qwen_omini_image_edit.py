@@ -780,6 +780,7 @@ class QwenOminiImageEditPipeline(DiffusionPipeline, QwenImageLoraLoaderMixin):
         image_latents = torch.cat([image_latents, reference_latents], dim=1)
         
         print(width, height, calculated_width, calculated_height, reference_width, reference_height, image_latents.shape)
+        reference_delta[0] = reference_delta[0] + 1
         img_shapes = [
             [
                 (1, height // self.vae_scale_factor // 2, width // self.vae_scale_factor // 2, 0,0,0),
