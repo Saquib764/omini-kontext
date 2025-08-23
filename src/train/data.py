@@ -185,6 +185,7 @@ class FluxOminiKontextDataset(Dataset):
         self.drop_text_prob = drop_text_prob
         self.pil = pil
         self.spatial = spatial
+        print(f"Loading dataset from {src} with spatial={spatial}")
         root = src
         for f in os.listdir(f'{root}/start'):
             if not (os.path.isfile(os.path.join(f'{root}/start', f)) and f.lower().endswith(('.jpg', '.jpeg', '.png', '.gif'))):
@@ -208,6 +209,15 @@ class FluxOminiKontextDataset(Dataset):
         target_image = Image.open(target_image_path).convert("RGB")
         reference_image = Image.open(reference_image_path).convert("RGB")
 
+        # make sure the input image is smaller than 1024
+        if input_image.width > 1024 or input_image.height > 1024:
+            scale = 1024 / max(input_image.width, input_image.height)
+            input_image = input_image.resize((int(input_image.width*scale//16)*16, int(input_image.height*scale//16)*16))
+            target_image = target_image.resize((int(target_image.width*scale//16)*16, int(target_image.height*scale//16)*16))
+
+            if self.spatial:
+                reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
+
         # make sure the reference image is smaller than 1024
         if reference_image.width > 1024 or reference_image.height > 1024:
             scale = 1024 / max(reference_image.width, reference_image.height)
@@ -221,6 +231,7 @@ class FluxOminiKontextDataset(Dataset):
         reference_delta = np.array(self.delta)
         if self.spatial:
             reference_image, reference_delta = optimise_image_condition(reference_image, reference_delta)
+            print(f"Optimised reference image with delta={reference_delta}")
         if self.pil:
             return {
                 "input_image": input_image,
