@@ -29,11 +29,19 @@ train:
   sample:
     - prompt: "Add the character to the image"
       init_image: "assets/scene_01.png"
-      reference_image: "assets/boy_reference_512.png"
-      
+      reference_image: "assets/spatial_reference_scene_01_boy_01.png"
+
+    - prompt: "Add the character to the image"
+      init_image: "assets/scene_01.png"
+      reference_image: "assets/spatial_reference_scene_01_boy_02.png"
+
     - prompt: "Add the character to the image"
       init_image: "assets/scene_02.png"
-      reference_image: "assets/boy_reference_512.png"
+      reference_image: "assets/spatial_reference_scene_02_boy_01.png"
+
+    - prompt: "Add the character to the image"
+      init_image: "assets/scene_02.png"
+      reference_image: "assets/spatial_reference_scene_02_boy_02.png"
 
   wandb:
     project: "OminiKontextControl"
