@@ -75,9 +75,13 @@ def optimise_image_condition(image: Image.Image, delta=[0,0,0]) -> Image.Image:
         rgb = arr[..., :3]
     else:
         rgb = arr
-    # convert to b/w, and find bounding box of non-white part of image
-    bw = np.mean(rgb, axis=-1)
-    nonwhite_mask = bw < 240
+
+    # Define a threshold for "white" (tolerate slight off-white)
+    threshold = 240
+    # Create mask: True where pixel is NOT white
+    nonwhite_mask = np.any(rgb < threshold, axis=-1)
+
+    # Find bounding box of non-white region
     coords = np.argwhere(nonwhite_mask)
     if coords.size == 0:
         # No non-white pixels, return original image
