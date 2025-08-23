@@ -9,6 +9,7 @@ import os
 from scipy.ndimage import gaussian_filter
 from datasets import load_dataset, concatenate_datasets
 from typing import List, Dict, Union, Optional, Any
+from ..pipeline_tools import optimise_image_condition
 
 
 def load_and_concatenate_datasets(
@@ -109,12 +110,12 @@ def example_usage():
 if __name__ == "__main__":
     example_usage()
 
-def select_and_load_dataset(dataset_name: str, delta: List[int] = [0, 0, 0], drop_text_prob: float = 0.1, split: str = "train", pil=False):
+def select_and_load_dataset(dataset_name: str, delta: List[int] = [0, 0, 0], drop_text_prob: float = 0.1, spatial: bool = False, split: str = "train", pil=False):
     # if dataset_name folder exists, load from there
     if os.path.exists(dataset_name):
-        return FluxOminiKontextDataset(dataset_name, delta=delta, drop_text_prob=drop_text_prob, pil=pil)
+        return FluxOminiKontextDataset(dataset_name, delta=delta, drop_text_prob=drop_text_prob, spatial=spatial, pil=pil)
     # otherwise, load from huggingface
-    return FluxOminiKontextDatasetHF(dataset_name, delta=delta, drop_text_prob=drop_text_prob, split=split)
+    return FluxOminiKontextDatasetHF(dataset_name, delta=delta, drop_text_prob=drop_text_prob, spatial=spatial, split=split)
 
 class FluxOminiKontextDatasetHF(Dataset):
     def __init__(
@@ -122,11 +123,12 @@ class FluxOminiKontextDatasetHF(Dataset):
         dataset_name: str,
         delta: List[int] = [0, 0, 0],
         drop_text_prob: float = 0.1,
+        spatial: bool = False,
         split: str = "train",
     ):
         self.base_dataset = load_dataset(dataset_name, split=split)
         self.delta = delta
-
+        self.spatial = spatial
         self.to_tensor = T.ToTensor()
         self.drop_text_prob = drop_text_prob
 
@@ -154,6 +156,8 @@ class FluxOminiKontextDatasetHF(Dataset):
         if random.random() < self.drop_text_prob:
             prompt = ""
         reference_delta = np.array(self.delta)
+        if self.spatial:
+            reference_image, reference_delta = optimise_image_condition(reference_image, reference_delta)
         return {
             "input_image": self.to_tensor(input_image),
             "target_image": self.to_tensor(target_image),
@@ -171,6 +175,7 @@ class FluxOminiKontextDataset(Dataset):
         src: str = 'data/character',
         delta: List[int] = [0, 0, 0],
         drop_text_prob: float = 0.1,
+        spatial: bool = False,
         pil=False
     ):
         self.init_files = []
@@ -179,7 +184,8 @@ class FluxOminiKontextDataset(Dataset):
         self.delta = delta
         self.drop_text_prob = drop_text_prob
         self.pil = pil
-
+        self.spatial = spatial
+        print(f"Loading dataset from {src} with spatial={spatial}")
         root = src
         for f in os.listdir(f'{root}/start'):
             if not (os.path.isfile(os.path.join(f'{root}/start', f)) and f.lower().endswith(('.jpg', '.jpeg', '.png', '.gif'))):
@@ -203,6 +209,15 @@ class FluxOminiKontextDataset(Dataset):
         target_image = Image.open(target_image_path).convert("RGB")
         reference_image = Image.open(reference_image_path).convert("RGB")
 
+        # make sure the input image is smaller than 1024
+        if input_image.width > 1024 or input_image.height > 1024:
+            scale = 1024 / max(input_image.width, input_image.height)
+            input_image = input_image.resize((int(input_image.width*scale//16)*16, int(input_image.height*scale//16)*16))
+            target_image = target_image.resize((int(target_image.width*scale//16)*16, int(target_image.height*scale//16)*16))
+
+            if self.spatial:
+                reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
+
         # make sure the reference image is smaller than 1024
         if reference_image.width > 1024 or reference_image.height > 1024:
             scale = 1024 / max(reference_image.width, reference_image.height)
@@ -214,6 +229,9 @@ class FluxOminiKontextDataset(Dataset):
 
         prompt = "add the character to the image"
         reference_delta = np.array(self.delta)
+        if self.spatial:
+            reference_image, reference_delta = optimise_image_condition(reference_image, reference_delta)
+            print(f"Optimised reference image with delta={reference_delta}, size={reference_image.size}")
         if self.pil:
             return {
                 "input_image": input_image,
@@ -222,8 +240,6 @@ class FluxOminiKontextDataset(Dataset):
                 "prompt": prompt,
                 "reference_delta": reference_delta,
             }
-        # resize the reference image to 512x512
-        reference_image = reference_image.resize((512, 512))
         return {
             "input_image": self.to_tensor(input_image),
             "target_image": self.to_tensor(target_image),

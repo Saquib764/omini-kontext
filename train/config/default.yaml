@@ -20,6 +20,7 @@ train:
   dataset:
     src: "data/character"
     reference_delta: [0, 0, 96]
+    spatial: false
     
     drop_text_prob: 0.1
 

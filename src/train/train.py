@@ -77,6 +77,7 @@ def main():
         dataset_name=training_config["dataset"]["src"],
         delta=training_config["dataset"]["reference_delta"],
         drop_text_prob=training_config["dataset"]["drop_text_prob"],
+        spatial=training_config["dataset"]["spatial"],
         # dataset,
         # condition_size=training_config["dataset"]["condition_size"],
         # target_size=training_config["dataset"]["target_size"],
@@ -107,7 +108,7 @@ def main():
             lora_path = f"{training_config['save_path']}/{last_training_session}/ckpt/{ckpt_paths[0]}"
             print(f"Resuming training from {lora_path}")
         else:
-            print("No checkpoint found. Training without LoRA weights.")
+            print("No checkpoint found. Training with new LoRA weights.")
 
     elif training_config['resume_training_from_checkpoint_path'] != "":
         _lora_path = training_config['resume_training_from_checkpoint_path']
@@ -116,7 +117,7 @@ def main():
             lora_path = _lora_path
             print(f"Training with LoRA weights from {_lora_path}")
         else:
-            print(f"Path {_lora_path} does not exist. Training without LoRA weights.")
+            print(f"Path {_lora_path} does not exist. Training with new LoRA weights.")
 
     # Initialize model
     if config["type"] != "qwen":
