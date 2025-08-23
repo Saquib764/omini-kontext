@@ -115,7 +115,10 @@ class TrainingCallback(L.Callback):
         if not os.path.exists(save_path):
             os.makedirs(save_path)
         for i, (init_img, reference_img, reference_delta, prompt) in enumerate(test_list):
-            pipe = pl_module.flux_pipe
+            if hasattr(pl_module, "flux_pipe"):
+                pipe = pl_module.flux_pipe
+            else:
+                pipe = pl_module.qwen_image_edit_pipe
             width, height = init_img.size
             res = pipe(
                 prompt=prompt,
