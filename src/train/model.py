@@ -226,7 +226,6 @@ class QwenOminiImageEditModel(L.LightningModule):
 
         # Freeze the Flux pipeline components
         self.qwen_image_edit_pipe.text_encoder.requires_grad_(False).eval()
-        self.qwen_image_edit_pipe.text_encoder_2.requires_grad_(False).eval()
         self.qwen_image_edit_pipe.vae.requires_grad_(False).eval()
 
         # Initialize LoRA layers
