@@ -75,7 +75,7 @@ def rope_forward(self, video_fhw, txt_seq_lens, device):
     txt_freqs = self.pos_freqs[max_vid_index : max_vid_index + max_len, ...]
     vid_freqs = torch.cat(vid_freqs, dim=0)
 
-    print(txt_freqs.shape)
+    # print(txt_freqs.shape)
 
     return vid_freqs, txt_freqs
 
