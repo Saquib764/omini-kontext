@@ -14,7 +14,7 @@ train:
   gradient_checkpointing: false
   save_path: "runs"
 
-  resume_training_from_last_checkpoint: false
+  resume_training_from_last_checkpoint: true
   # Ignored if resume_training_from_last_checkpoint = true. 
   # Ignored if path does not exist.
   resume_training_from_checkpoint_path: "runs/20250127-114531/ckpt/1000"
@@ -47,8 +47,8 @@ train:
     project: "OminiKontextControl"
 
   lora_config:
-    r: 8
-    lora_alpha: 8
+    r: 16
+    lora_alpha: 16
     init_lora_weights: "gaussian"
     target_modules: ["to_k", "to_q", "to_v", "to_out.0"]
 

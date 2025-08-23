@@ -216,7 +216,7 @@ class QwenOminiImageEditModel(L.LightningModule):
         self.model_config = model_config
         self.optimizer_config = optimizer_config
 
-        # Load the Flux Omini Kontext pipeline
+        # Load the Qwen Omini Image Edit pipeline
         self.qwen_image_edit_pipe: QwenOminiImageEditPipeline = (
             QwenOminiImageEditPipeline.from_pretrained(qwen_image_edit_pipe_id).to(dtype=dtype).to(device)
         )
@@ -239,7 +239,7 @@ class QwenOminiImageEditModel(L.LightningModule):
     def init_lora(self, lora_path: str, lora_config: dict):
         assert lora_path or lora_config
         if lora_path:
-            self.flux_pipe.load_lora_weights(lora_path, adapter_name="default")
+            self.qwen_image_edit_pipe.load_lora_weights(lora_path, adapter_name="default")
             # Get trainable parameters (LoRA layers)
             lora_layers = filter(
                 lambda p: p.requires_grad, self.transformer.parameters()

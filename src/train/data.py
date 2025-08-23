@@ -210,13 +210,13 @@ class FluxOminiKontextDataset(Dataset):
         reference_image = Image.open(reference_image_path).convert("RGB")
 
         # make sure the input image is smaller than 1024
-        # if input_image.width > 1024 or input_image.height > 1024:
-        #     scale = 1024 / max(input_image.width, input_image.height)
-        #     input_image = input_image.resize((int(input_image.width*scale//16)*16, int(input_image.height*scale//16)*16))
-        #     target_image = target_image.resize((int(target_image.width*scale//16)*16, int(target_image.height*scale//16)*16))
+        if input_image.width > 1152 or input_image.height > 1152:
+            scale = 1024 / max(input_image.width, input_image.height)
+            input_image = input_image.resize((int(input_image.width*scale//16)*16, int(input_image.height*scale//16)*16))
+            target_image = target_image.resize((int(target_image.width*scale//16)*16, int(target_image.height*scale//16)*16))
 
-        #     if self.spatial:
-        #         reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
+            if self.spatial:
+                reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
 
         # make sure the reference image is smaller than 1024
         # if reference_image.width > 1024 or reference_image.height > 1024:
