@@ -24,7 +24,7 @@ app.registerExtension({
       // Utility function to send settings to backend
       const sendSettings = async (settings) => {
         try {
-          const response = await api.fetchApi("/omini_kontext_editor/update_reference_settings", {
+          const response = await api.fetchApi("/omini_kontext_editor/update_subject_settings", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ unique_id: this.id, settings })
@@ -61,8 +61,8 @@ app.registerExtension({
 
       let fabricCanvas = null;
 
-      // Function to send reference settings
-      const sendReferenceSettings = () => {
+      // Function to send subject settings
+      const sendSubjectSettings = () => {
         if (!fabricCanvas) return;
         
         const refImage = fabricCanvas.getObjects().find(obj => obj.selectable && obj.evented);
@@ -107,7 +107,7 @@ app.registerExtension({
       };
 
       // Function to load and setup images
-      const setupImages = async (base_image, reference_image, reference_settings) => {
+      const setupImages = async (background, subject, subject_settings) => {
         // Clean up existing canvas
         if (fabricCanvas) {
           fabricCanvas.dispose();
@@ -124,9 +124,9 @@ app.registerExtension({
         fabricCanvas.selectionBorderColor = 'rgba(0,123,255,1)';
         
         try {
-          // Load base image
+          // Load background image
           const baseImg = await new Promise((resolve) => {
-            fabric.Image.fromURL(base_image, resolve, { crossOrigin: 'anonymous' });
+            fabric.Image.fromURL(background, resolve, { crossOrigin: 'anonymous' });
           });
           
           const { canvasWidth, canvasHeight } = calculateCanvasDimensions(
@@ -137,7 +137,7 @@ app.registerExtension({
           fabricCanvas.setDimensions({ width: canvasWidth, height: canvasHeight });
           this.overallScale = canvasWidth / baseImg.width;
           
-          // Add base image (non-selectable)
+          // Add background image (non-selectable)
           baseImg.set({
             selectable: false,
             evented: false,
@@ -153,10 +153,10 @@ app.registerExtension({
           overlay.style.width = `${canvasWidth}px`;
           overlay.style.height = `${canvasHeight}px`;
           
-          // Load reference image if available
-          if (reference_image) {
+          // Load subject image if available
+          if (subject) {
             const refImg = await new Promise((resolve) => {
-              fabric.Image.fromURL(reference_image, resolve, { crossOrigin: 'anonymous' });
+              fabric.Image.fromURL(subject, resolve, { crossOrigin: 'anonymous' });
             });
             
             // Calculate scale to fit within canvas bounds
@@ -170,13 +170,13 @@ app.registerExtension({
             // Determine initial position and scale
             let settings = { top: null, left: null, scaleX: null, scaleY: null, angle: null };
             
-            if (reference_settings) {
+            if (subject_settings) {
               settings = {
-                top: reference_settings.top,
-                left: reference_settings.left,
-                scaleX: reference_settings.scaleX,
-                scaleY: reference_settings.scaleY,
-                angle: reference_settings.angle || 0
+                top: subject_settings.top,
+                left: subject_settings.left,
+                scaleX: subject_settings.scaleX,
+                scaleY: subject_settings.scaleY,
+                angle: subject_settings.angle || 0
               };
             } else if (this.savedRefImageState.top !== null) {
               settings = { ...this.savedRefImageState };
@@ -194,7 +194,7 @@ app.registerExtension({
             // Save state
             this.savedRefImageState = { ...settings };
             
-            // Configure reference image
+            // Configure subject image
             refImg.set({
               left: settings.left,
               top: settings.top,
@@ -221,7 +221,7 @@ app.registerExtension({
               this.savedRefImageState.scaleY = refImg.scaleY;
               this.savedRefImageState.angle = refImg.angle;
               console.log("savedRefImageState", this.savedRefImageState);
-              sendReferenceSettings();
+              sendSubjectSettings();
             };
             
             refImg.on('moving', updateSettings);
@@ -246,11 +246,11 @@ app.registerExtension({
 
       // Listen for background images from server
       api.addEventListener("simpledraw_bg", async ({ detail }) => {
-        const { unique_id, base_image, reference_image, reference_settings } = detail || {};
+        const { unique_id, background, subject, subject_settings } = detail || {};
         if (String(unique_id) !== String(this.id)) return;
         
-        await setupImages(base_image, reference_image, reference_settings);
-        sendReferenceSettings();
+        await setupImages(background, subject, subject_settings);
+        sendSubjectSettings();
       });
 
       return r;

@@ -68,9 +68,9 @@ class OminiKontextEditor:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "base_image": ("IMAGE",),
-                "reference_image": ("IMAGE",),
-                "reference_mask": ("MASK",),
+                "background": ("IMAGE",),
+                "subject": ("IMAGE",),
+                "subject_mask": ("MASK",),
             },
             "hidden": {
                 "unique_id": "UNIQUE_ID",
@@ -81,48 +81,48 @@ class OminiKontextEditor:
     FUNCTION = "do_composite"
     CATEGORY = "image"
 
-    def _push_bg(self, unique_id: str, base_image: Image.Image, reference_image: Image.Image):
+    def _push_bg(self, unique_id: str, background: Image.Image, subject: Image.Image):
         """Send images to browser widget."""
         try:
-            data_url = _png_data_url(base_image.convert("RGBA"))
-            reference_data_url = _png_data_url(reference_image.convert("RGBA"))
+            data_url = _png_data_url(background.convert("RGBA"))
+            subject_data_url = _png_data_url(subject.convert("RGBA"))
             
-            # Get saved reference settings if they exist
-            reference_settings = editor_scales.get(str(unique_id))
+            # Get saved subject settings if they exist
+            subject_settings = editor_scales.get(str(unique_id))
             
             PromptServer.instance.send_sync(
                 "simpledraw_bg",
                 {
                     "unique_id": str(unique_id), 
-                    "base_image": data_url, 
-                    "reference_image": reference_data_url,
-                    "reference_settings": reference_settings
+                    "background": data_url, 
+                    "subject": subject_data_url,
+                    "subject_settings": subject_settings
                 },
             )
         except Exception as e:
             pass
 
-    def _composite_reference_image(self, base_img: Image.Image, reference_img: Image.Image, reference_settings: dict) -> Tuple[Image.Image, Image.Image]:
-        """Composite reference image onto base image according to settings."""
+    def _composite_reference_image(self, background_img: Image.Image, subject_img: Image.Image, subject_settings: dict) -> Tuple[Image.Image, Image.Image]:
+        """Composite subject image onto background image according to settings."""
         # Create output images
-        white_bg = Image.new('RGBA', base_img.size, (255, 255, 255, 255))
-        base_composite = base_img.copy()
+        white_bg = Image.new('RGBA', background_img.size, (255, 255, 255, 255))
+        base_composite = background_img.copy()
         
-        if not reference_settings:
+        if not subject_settings:
             return white_bg.convert("RGB"), base_composite.convert("RGB")
         
         # Calculate the actual position and scale in the final image
-        canvas_scale = reference_settings.get('overallScale', 1.0)
+        canvas_scale = subject_settings.get('overallScale', 1.0)
         
-        # Scale the reference image according to saved scale
-        ref_width = int(reference_img.width * reference_settings.get('scaleX', 1.0) / canvas_scale)
-        ref_height = int(reference_img.height * reference_settings.get('scaleY', 1.0) / canvas_scale)
+        # Scale the subject image according to saved scale
+        ref_width = int(subject_img.width * subject_settings.get('scaleX', 1.0) / canvas_scale)
+        ref_height = int(subject_img.height * subject_settings.get('scaleY', 1.0) / canvas_scale)
         
-        # Resize reference image
-        scaled_ref = reference_img.resize((ref_width, ref_height), Image.LANCZOS)
+        # Resize subject image
+        scaled_ref = subject_img.resize((ref_width, ref_height), Image.LANCZOS)
         
         # Apply rotation if specified
-        angle = reference_settings.get('angle', 0)
+        angle = subject_settings.get('angle', 0)
         if angle != 0:
             # Expand the image to accommodate rotation
             expanded_size = int(max(ref_width, ref_height) * 1.5)
@@ -143,8 +143,8 @@ class OminiKontextEditor:
             scaled_ref = scaled_ref.convert('RGBA')
         
         # Calculate position in the final image coordinates
-        left = int(reference_settings.get('left', 0) / canvas_scale)
-        top = int(reference_settings.get('top', 0) / canvas_scale)
+        left = int(subject_settings.get('left', 0) / canvas_scale)
+        top = int(subject_settings.get('top', 0) / canvas_scale)
         
         # Adjust position for rotated image to maintain center alignment
         if angle != 0:
@@ -173,7 +173,7 @@ class OminiKontextEditor:
             # If no alpha channel, create a solid mask
             alpha_mask = Image.new('L', scaled_ref.size, 255)
         
-        # Paste the scaled reference image at the calculated position
+        # Paste the scaled subject image at the calculated position
         try:
             white_bg.paste(scaled_ref, (left, top), alpha_mask)
             base_composite.paste(scaled_ref, (left, top), alpha_mask)
@@ -184,56 +184,56 @@ class OminiKontextEditor:
         
         return white_bg.convert("RGB"), base_composite.convert("RGB")
 
-    def do_composite(self, base_image: torch.Tensor, reference_image: torch.Tensor, reference_mask: torch.Tensor, unique_id):
+    def do_composite(self, background: torch.Tensor, subject: torch.Tensor, subject_mask: torch.Tensor, unique_id):
         """Main composite function."""
         # Convert input tensor to PIL
-        base = _tensor_to_pil(base_image)
-        reference = _tensor_to_pil(reference_image)
-        reference_mask = _tensor_to_pil(1 - reference_mask)
+        base = _tensor_to_pil(background)
+        subject_img = _tensor_to_pil(subject)
+        subject_mask_img = _tensor_to_pil(1 - subject_mask)
         
-        # Combine reference with mask if sizes match
-        if reference.size == reference_mask.size:
+        # Combine subject with mask if sizes match
+        if subject_img.size == subject_mask_img.size:
             try:
-                # Ensure reference is in RGB mode for splitting
-                if reference.mode != 'RGB':
-                    reference = reference.convert('RGB')
+                # Ensure subject is in RGB mode for splitting
+                if subject_img.mode != 'RGB':
+                    subject_img = subject_img.convert('RGB')
                 
                 # Ensure mask is in 'L' mode (grayscale)
-                if reference_mask.mode != 'L':
-                    reference_mask = reference_mask.convert('L')
+                if subject_mask_img.mode != 'L':
+                    subject_mask_img = subject_mask_img.convert('L')
                 
                 # Split RGB channels and combine with mask
-                r, g, b = reference.split()
-                reference = Image.merge("RGBA", (r, g, b, reference_mask))
+                r, g, b = subject_img.split()
+                subject_img = Image.merge("RGBA", (r, g, b, subject_mask_img))
             except Exception as e:
-                # Fallback: convert reference to RGBA without mask
-                reference = reference.convert('RGBA')
+                # Fallback: convert subject to RGBA without mask
+                subject_img = subject_img.convert('RGBA')
         else:
-            # If sizes don't match, ensure reference is in RGBA mode
-            if reference.mode != 'RGBA':
-                reference = reference.convert('RGBA')
+            # If sizes don't match, ensure subject is in RGBA mode
+            if subject_img.mode != 'RGBA':
+                subject_img = subject_img.convert('RGBA')
 
         # Send images to browser widget
-        self._push_bg(unique_id, base, reference)
+        self._push_bg(unique_id, base, subject_img)
         
-        # Get saved reference settings
-        reference_settings = None
-        while reference_settings is None:
-            reference_settings = editor_scales.get(str(unique_id))
+        # Get saved subject settings
+        subject_settings = None
+        while subject_settings is None:
+            subject_settings = editor_scales.get(str(unique_id))
             time.sleep(0.4)
 
         # Composite images
-        white_composite, base_composite = self._composite_reference_image(base, reference, reference_settings)
+        white_composite, base_composite = self._composite_reference_image(base, subject_img, subject_settings)
         
         return (_pil_to_tensor(white_composite), _pil_to_tensor(base_composite))
 
     @classmethod
-    def IS_CHANGED(cls, base_image, reference_image, reference_mask, unique_id):
+    def IS_CHANGED(cls, background, subject, subject_mask, unique_id):
         """Re-run when input image content changes or reference settings change."""
         h = hashlib.sha256()
 
         # Hash input tensors
-        for tensor, name in [(base_image, "base"), (reference_image, "reference"), (reference_mask, "mask")]:
+        for tensor, name in [(background, "base"), (subject, "subject"), (subject_mask, "mask")]:
             try:
                 arr = tensor[0].detach().cpu().clamp(0, 1).numpy()
                 h.update(arr.tobytes())
@@ -251,7 +251,7 @@ class OminiKontextEditor:
         return h.hexdigest()
 
     @classmethod
-    def VALIDATE_INPUTS(cls, base_image, reference_image, reference_mask, unique_id):
+    def VALIDATE_INPUTS(cls, background, subject, subject_mask, unique_id):
         return True
 
 
@@ -264,9 +264,9 @@ def register_upload_api():
         
         server = PromptServer.instance
         
-        @server.routes.post("/omini_kontext_editor/update_reference_settings")
-        async def handle_reference_settings_update(request):
-            """Handle reference settings updates from the editor"""
+        @server.routes.post("/omini_kontext_editor/update_subject_settings")
+        async def handle_subject_settings_update(request):
+            """Handle subject settings updates from the editor"""
             try:
                 data = await request.json()
                 unique_id = data.get('unique_id')
@@ -282,11 +282,11 @@ def register_upload_api():
                     
                     return web.json_response({
                         "status": "success",
-                        "message": "Reference settings cleared successfully",
+                        "message": "Subject settings cleared successfully",
                         "unique_id": unique_id
                     })
                 
-                # Store reference settings
+                # Store subject settings
                 editor_scales[str(unique_id)] = {
                     'left': settings.get('left'),
                     'top': settings.get('top'),
@@ -300,7 +300,7 @@ def register_upload_api():
                 
                 return web.json_response({
                     "status": "success",
-                    "message": "Reference settings updated successfully",
+                    "message": "Subject settings updated successfully",
                     "unique_id": unique_id
                 })
                 
