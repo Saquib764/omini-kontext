@@ -6,7 +6,7 @@ import time
 from cog import BasePredictor, Input, Path, Secret
 import torch
 from PIL import Image, ImageChops
-from src.pipeline_qwen_omini_image_edit import QwenOminiImageEditPipeline
+from src.pipeline_flux_omini_kontext import FluxOminiKontextPipeline
 import random
 import json
 
@@ -22,16 +22,16 @@ LoRA_MODELS = {
     },
     "spatial_character_insertion": {
         "lora_path": "saquiboye/omini-kontext",
-        "weight_name": "qwen/character_spatial_1000.safetensors",
+        "weight_name": "spatial-character-test.safetensors",
     },
     "character_insertion": {
         "lora_path": "saquiboye/omini-kontext",
-        "weight_name": "qwen/character_1000.safetensors",
+        "weight_name": "character_3000.safetensors",
     },
-    # "product_insertion": {
-    #     "lora_path": "saquiboye/omini-kontext",
-    #     "weight_name": "product_2000.safetensors",
-    # }
+    "product_insertion": {
+        "lora_path": "saquiboye/omini-kontext",
+        "weight_name": "product_2000.safetensors",
+    }
 }
 
 class Predictor(BasePredictor):
@@ -39,8 +39,8 @@ class Predictor(BasePredictor):
         """Load the model into memory to make running multiple predictions efficient"""
 
         ensure_hf_login()
-        self.pipe = QwenOminiImageEditPipeline.from_pretrained(
-            "Qwen/Qwen-Image-Edit", torch_dtype=torch.bfloat16
+        self.pipe = FluxOminiKontextPipeline.from_pretrained(
+            "black-forest-labs/FLUX.1-Kontext-dev", torch_dtype=torch.bfloat16
         ).to("cuda")
 
     def predict(
@@ -133,11 +133,13 @@ class Predictor(BasePredictor):
                 reference_image = reference_image.resize((width, height), Image.LANCZOS)
         
         try:
-            print("has_reference: ", has_reference)
-            print("reference_image: ", reference_image)
-            print("delta: ", delta)
-            # if has_reference:
-            #     optimised_reference, new_reference_delta = optimise_image_condition(reference_image, delta)
+            if has_reference:
+                optimised_reference, new_reference_delta = optimise_image_condition(reference_image, delta)
+                print("optimised_reference: ", optimised_reference)
+                print("new_reference_delta: ", new_reference_delta)
+                o = "tmp/optimised_reference.png"
+                optimised_reference.save(o)
+                print("saved optimised_reference to: ", Path(o))
             result_img = self.pipe(
                 prompt=prompt,
                 image=image,
@@ -147,8 +149,8 @@ class Predictor(BasePredictor):
                 height=height,
                 width=width,
                 generator=generator,
-                # _auto_resize=False,
-                # max_area=width*height,
+                _auto_resize=False,
+                max_area=width*height,
                 guidance_scale=guidance_scale
             ).images[0]
 
