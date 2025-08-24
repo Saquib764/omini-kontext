@@ -233,22 +233,23 @@ class QwenOminiImageEditModel(L.LightningModule):
             self.transformer.enable_gradient_checkpointing()
 
         # Freeze the Flux pipeline components
-        self.qwen_image_edit_pipe.text_encoder.requires_grad_(False)
-        self.qwen_image_edit_pipe.vae.requires_grad_(False)
+        self.qwen_image_edit_pipe.text_encoder.requires_grad_(False).eval()
+        self.qwen_image_edit_pipe.vae.requires_grad_(False).eval()
         self.transformer.requires_grad_(False)
         self.transformer.train()
         self.lora_layers = self.init_lora(lora_path, lora_config)
 
-        # for n, param in self.transformer.named_parameters():
-        #     if 'lora' not in n:
-        #         param.requires_grad = False
-        #         pass
-        #     else:
-        #         param.requires_grad = True
+        for n, param in self.transformer.named_parameters():
+            print(n, param.requires_grad)
+            if 'lora' not in n:
+                param.requires_grad = False
+                pass
+            else:
+                param.requires_grad = True
 
-        self.lora_layers = filter(
-            lambda p: p.requires_grad, self.transformer.parameters()
-        )
+        # self.lora_layers = filter(
+        #     lambda p: p.requires_grad, self.transformer.parameters()
+        # )
 
         # Initialize joint attention kwargs
         self.joint_attention_kwargs = {}
