@@ -7,6 +7,7 @@ from cog import BasePredictor, Input, Path, Secret
 import torch
 from PIL import Image, ImageChops
 from src.pipeline_qwen_omini_image_edit import QwenOminiImageEditPipeline
+from src.pipeline_flux_omini_kontext import FluxOminiKontextPipeline
 import random
 import json
 
@@ -22,16 +23,16 @@ LoRA_MODELS = {
     },
     "spatial_character_insertion": {
         "lora_path": "saquiboye/omini-kontext",
-        "weight_name": "qwen/character_spatial_1000.safetensors",
+        "weight_name": "character_spatial_2000.safetensors",
     },
     "character_insertion": {
         "lora_path": "saquiboye/omini-kontext",
-        "weight_name": "qwen/character_1000.safetensors",
+        "weight_name": "character_2000.safetensors",
     },
-    # "product_insertion": {
-    #     "lora_path": "saquiboye/omini-kontext",
-    #     "weight_name": "product_2000.safetensors",
-    # }
+    "product_insertion": {
+        "lora_path": "saquiboye/omini-kontext",
+        "weight_name": "product_2000.safetensors",
+    }
 }
 
 class Predictor(BasePredictor):
@@ -39,9 +40,12 @@ class Predictor(BasePredictor):
         """Load the model into memory to make running multiple predictions efficient"""
 
         ensure_hf_login()
-        self.pipe = QwenOminiImageEditPipeline.from_pretrained(
-            "Qwen/Qwen-Image-Edit", torch_dtype=torch.bfloat16
+        self.pipe = FluxOminiKontextPipeline.from_pretrained(
+            "black-forest-labs/FLUX.1-Kontext-dev", torch_dtype=torch.bfloat16
         ).to("cuda")
+        # self.pipe = QwenOminiImageEditPipeline.from_pretrained(
+        #     "Qwen/Qwen-Image-Edit", torch_dtype=torch.bfloat16
+        # ).to("cuda")
 
     def predict(
         self,
@@ -156,14 +160,14 @@ class Predictor(BasePredictor):
             result_img = self.pipe(
                 prompt=prompt,
                 image=image,
-                reference=oreference_image,
-                reference_delta=delta,
+                reference=reference_image if has_reference else None,
+                reference_delta=delta if has_reference else None,
                 num_inference_steps=num_inference_steps,
                 height=height,
                 width=width,
                 generator=generator,
-                # _auto_resize=False,
-                # max_area=width*height,
+                _auto_resize=False,
+                max_area=width*height,
                 guidance_scale=guidance_scale
             ).images[0]
 
