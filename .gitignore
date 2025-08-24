@@ -8,3 +8,4 @@ __pycache__
 .DS_Store
 custom_data/*
 ComfyUI
+diffusers
