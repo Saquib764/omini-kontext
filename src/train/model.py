@@ -401,6 +401,7 @@ class QwenOminiImageEditModel(L.LightningModule):
             
             # Apply position delta to reference image IDs
             delta = reference_deltas[0]
+            delta[0] = delta[0] + 1
 
 
             # Combine input and reference images
@@ -412,6 +413,7 @@ class QwenOminiImageEditModel(L.LightningModule):
                     (1, reference_height // self.qwen_image_edit_pipe.vae_scale_factor // 2, reference_width // self.qwen_image_edit_pipe.vae_scale_factor // 2, *delta),
                 ]
             ]
+            print(img_shapes)
 
             u = compute_density_for_timestep_sampling(
                 weighting_scheme="none",
@@ -430,19 +432,13 @@ class QwenOminiImageEditModel(L.LightningModule):
             # print(x_t.shape, condition.shape, sigmas)
             latent_model_input = torch.cat([x_t, condition], dim=1)
 
-            # Prepare guidance
-            guidance = (
-                torch.ones_like(t).to(self.device)
-                if self.transformer.config.guidance_embeds
-                else None
-            )
 
         # Forward pass
         pred = forward(
             self.transformer,
             hidden_states=latent_model_input,
             timestep=timesteps/1000,
-            guidance=guidance,
+            guidance=None,
             encoder_hidden_states_mask=prompt_embeds_mask,
             encoder_hidden_states=prompt_embeds,
             img_shapes=img_shapes,
