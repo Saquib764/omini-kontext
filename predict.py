@@ -136,8 +136,8 @@ class Predictor(BasePredictor):
             print("has_reference: ", has_reference)
             print("reference_image: ", reference_image)
             print("delta: ", delta)
-            if has_reference:
-                optimised_reference, new_reference_delta = optimise_image_condition(reference_image, delta)
+            # if has_reference:
+            #     optimised_reference, new_reference_delta = optimise_image_condition(reference_image, delta)
             result_img = self.pipe(
                 prompt=prompt,
                 image=image,
