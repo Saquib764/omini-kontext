@@ -20,7 +20,7 @@ build:
     - transformers
     - sentencepiece
     - protobuf
-    - huggingface-hub==0.25.2
+    - huggingface-hub==0.34.0
     - peft
     - opencv-python
     - lightning
