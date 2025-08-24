@@ -240,7 +240,6 @@ class QwenOminiImageEditModel(L.LightningModule):
         self.lora_layers = self.init_lora(lora_path, lora_config)
 
         for n, param in self.transformer.named_parameters():
-            print(n, param.requires_grad)
             if 'lora' not in n:
                 param.requires_grad = False
                 pass

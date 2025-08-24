@@ -143,11 +143,21 @@ class Predictor(BasePredictor):
                 print("saved optimised_reference to: ", Path(o))
             except Exception as e:
                 print("Error saving optimised reference: ", e)
+
+            print("reference_image: ", reference_image)
+            print("delta: ", delta)
+            print("image: ", image)
+            print("prompt: ", prompt)
+            print("num_inference_steps: ", num_inference_steps)
+            print("height: ", height)
+            print("width: ", width)
+            print("generator: ", generator)
+            print("guidance_scale: ", guidance_scale)
             result_img = self.pipe(
                 prompt=prompt,
                 image=image,
-                reference=optimised_reference if has_reference else None,
-                reference_delta=new_reference_delta if has_reference else None,
+                reference=oreference_image,
+                reference_delta=delta,
                 num_inference_steps=num_inference_steps,
                 height=height,
                 width=width,

@@ -3,7 +3,7 @@ name: Push to TheFluxTrain public Replicate model
 on:
   push:
     branches:
-      - dev
+      - qwen-image-edit
  
 jobs:
   push_to_replicate:
