@@ -4,7 +4,7 @@
 build:
   # set to true if your model requires a GPU
   gpu: true
-  cuda: "12.1"
+  cuda: "13"
 
   # python version in the form '3.11' or '3.11.4'
   python_version: "3.11"
@@ -16,18 +16,18 @@ build:
 
   # a list of packages in the format <package-name>==<version>
   python_packages:
-    - diffusers==0.35.1
+    - diffusers
     - transformers
     - sentencepiece
     - protobuf
-    - huggingface-hub==0.34.0
+    - huggingface-hub
     - peft
     - opencv-python
     - lightning
     - datasets
     - prodigyopt
     - wandb
-    - Pillow==9.5.0
+    - Pillow
     - accelerate
     - py_real_esrgan
     - rembg
