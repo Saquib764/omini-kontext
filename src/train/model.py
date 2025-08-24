@@ -229,7 +229,6 @@ class QwenOminiImageEditModel(L.LightningModule):
         )
         self.transformer = self.qwen_image_edit_pipe.transformer
         # Initialize LoRA layers
-        self.lora_layers = self.init_lora(lora_path, lora_config)
         if gradient_checkpointing:
             self.transformer.enable_gradient_checkpointing()
 
@@ -238,13 +237,14 @@ class QwenOminiImageEditModel(L.LightningModule):
         self.qwen_image_edit_pipe.vae.requires_grad_(False)
         self.transformer.requires_grad_(False)
         self.transformer.train()
+        self.lora_layers = self.init_lora(lora_path, lora_config)
 
-        for n, param in self.transformer.named_parameters():
-            if 'lora' not in n:
-                param.requires_grad = False
-                pass
-            else:
-                param.requires_grad = True
+        # for n, param in self.transformer.named_parameters():
+        #     if 'lora' not in n:
+        #         param.requires_grad = False
+        #         pass
+        #     else:
+        #         param.requires_grad = True
 
         self.lora_layers = filter(
             lambda p: p.requires_grad, self.transformer.parameters()
