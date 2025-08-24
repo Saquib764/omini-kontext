@@ -139,7 +139,7 @@ def optimise_image_condition(image: Image.Image, delta=[0,0,0]) -> Image.Image:
     y1 = y0 + (y1-y0)//16 * 16
 
 
-    delta[1] = y0//16
-    delta[2] = x0//16
+    delta[1] = int(y0//16)
+    delta[2] = int(x0//16)
     # Crop and return
     return image.crop((x0, y0, x1, y1)), delta
