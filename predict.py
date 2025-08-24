@@ -152,8 +152,8 @@ class Predictor(BasePredictor):
                 height=height,
                 width=width,
                 generator=generator,
-                _auto_resize=False,
-                max_area=width*height,
+                # _auto_resize=False,
+                # max_area=width*height,
                 guidance_scale=guidance_scale
             ).images[0]
 
