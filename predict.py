@@ -135,6 +135,14 @@ class Predictor(BasePredictor):
         try:
             if has_reference:
                 optimised_reference, new_reference_delta = optimise_image_condition(reference_image, delta)
+            try:
+                print("optimised_reference: ", optimised_reference)
+                print("new_reference_delta: ", new_reference_delta)
+                o = "/tmp/optimised_reference.png"
+                optimised_reference.save(o)
+                print("saved optimised_reference to: ", Path(o))
+            except Exception as e:
+                print("Error saving optimised reference: ", e)
             result_img = self.pipe(
                 prompt=prompt,
                 image=image,
