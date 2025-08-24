@@ -1,6 +1,6 @@
 torch>=2.0.0
 lightning>=2.0.0
-diffusers>=0.25.0
+diffusers>=0.35.1
 transformers>=4.35.0
 peft>=0.17.0
 prodigyopt>=1.0.0

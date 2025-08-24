@@ -16,6 +16,7 @@ build:
 
   # a list of packages in the format <package-name>==<version>
   python_packages:
+    - diffusers==0.35.1
     - transformers
     - sentencepiece
     - protobuf
@@ -35,7 +36,6 @@ build:
 
   run:
     - curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.6.0/pget_linux_x86_64" && chmod +x /usr/local/bin/pget
-    - pip install git+https://github.com/huggingface/diffusers
 
 predict: "predict.py:Predictor"
 # train: "trainer.py:train"
