@@ -1,6 +1,7 @@
 import torch
 import types
 import comfy.ldm.flux.model
+from .omini_kontext import extra_conds
 
 
 def new_forward(
@@ -52,7 +53,7 @@ def new_forward(
     if omini_latents is not None:
         for lat, delta in zip(omini_latents, omini_latents_deltas):
             i_offset, h_offset, w_offset = delta[0,0,0].tolist()
-            kontext, kontext_ids = self.process_img(lat, index=1+i_offset, h_offset=h_offset * self.patch_size, w_offset=w_offset * self.patch_size)
+            kontext, kontext_ids, _ = self.process_img(lat, index=1+i_offset, h_offset=h_offset * self.patch_size, w_offset=w_offset * self.patch_size)
             hidden_states = torch.cat([hidden_states, kontext], dim=1)
             img_ids = torch.cat([img_ids, kontext_ids], dim=1)
 
@@ -131,10 +132,10 @@ class OminiQwenImageEditModelPatch:
         new_model = model.clone()
         diffusion_model = new_model.get_model_object('diffusion_model')
         # Replace the forward method with the new one type 
-        diffusion_model.forward = types.MethodType(new_forward, diffusion_model)
+        diffusion_model._forward = types.MethodType(new_forward, diffusion_model)
 
         # Now backup and replace the extra_conds and extra_conds_shapes methods
-        new_model.model._extra_conds = new_model.model.extra_conds
+        new_model.model._extra_conds = model.model.extra_conds
         # new_model.model._extra_conds_shapes = new_model.model.extra_conds_shapes
         new_model.model.extra_conds = types.MethodType(extra_conds, new_model.model)
         # new_model.model.extra_conds_shapes = types.MethodType(extra_conds_shapes, new_model.model)

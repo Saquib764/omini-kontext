@@ -6,7 +6,9 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
 
-Update: This repository includes nodes and patches for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) that are compatible with the [Nunchaku](https://github.com/nunchaku-tech/ComfyUI-nunchaku/tree/v0.3.4) extension. So you can use nunchaku version of Flux Kontext model with Omini Kontext at lightning speed.
+## Updates
+- Qwen-Image-Edit support added. Spatial character insertion model available on HF(link below). this is experimental model, and not yet trained on large dataset. It sometimes insert duplicate characters.
+- This repository includes nodes and patches for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) that are compatible with the [Nunchaku](https://github.com/nunchaku-tech/ComfyUI-nunchaku/tree/v0.3.4) extension. So you can use nunchaku version of Flux Kontext model with Omini Kontext at lightning speed.
 
 
 ## 🚀 Live Demo
@@ -103,6 +105,7 @@ The following table compares the performance of Omini Kontext model with a chara
 
 | Model Name | Delta | Description |
 |------------|-------|-------------|
+| [qwen/spatial_character_1500.safetensors](https://huggingface.co/saquiboye/omini-kontext/blob/main/qwen/spatial_character_1500.safetensors) | [1,0,0] | Character in white background. |
 | [character_3000.safetensors](https://huggingface.co/saquiboye/omini-kontext/blob/main/character_3000.safetensors) | [0,0,96] | On comfyUI, use cfg=1.5 , LoRA strength = 0.5-0.7. Character in white background. |
 | [spatial-character-test.safetensors](https://huggingface.co/saquiboye/omini-kontext/blob/main/spatial-character-test.safetensors) | [1,0,0] | On comfyUI, use cfg=1.5 , LoRA strength = 0.5-0.7 . Upload the reference image of same size as the base image, with character placed corresponding to where you want it to be. |
 | [product_2000.safetensors](https://huggingface.co/saquiboye/omini-kontext/blob/main/product_2000.safetensors) | [0,0,96] | On comfyUI, use cfg=1.5 , LoRA strength = 0.5-0.7. Product in white background. |
@@ -112,7 +115,7 @@ The following table compares the performance of Omini Kontext model with a chara
 2. Trained on 512x512 reference image, but works fine with 1024x1024
 
 ## 📋 To-do
-- [ ] Add Qwen-Image-Edit support
+- [x] Add Qwen-Image-Edit support
 - [ ] Extend to input multiple references.
 - [ ] Create more demos for various usecases. Community support needed!
 - [x] Add Nunchaku integration in ComfyUI
@@ -129,6 +132,7 @@ The following table compares the performance of Omini Kontext model with a chara
 - [x] Basic inference script
 
 ### Model training Plans
+- [ ] **Qwen-Image-Edit character model**: Train character models for Qwen-Image-Edit.
 - [ ] **Person Models**: Develop models for realistic human subjects
 - [ ] **Clothes Models**: Create models for clothing and fashion items
 - [x] **Subject Models**: Train models for specific objects and items
