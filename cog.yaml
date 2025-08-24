@@ -28,7 +28,7 @@ build:
     - prodigyopt
     - wandb
     - Pillow==9.5.0
-    - accelerate==0.33.0
+    - accelerate
     - py_real_esrgan
     - rembg
     - onnxruntime
