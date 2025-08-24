@@ -234,6 +234,9 @@ class FluxOminiKontextDataset(Dataset):
         reference_image = reference_image_
 
         prompt = "add the character to the image"
+        if random.random() < self.drop_text_prob:
+            prompt = ""
+            
         reference_delta = np.array(self.delta)
         if self.spatial:
             reference_image, reference_delta = optimise_image_condition(reference_image, reference_delta)
