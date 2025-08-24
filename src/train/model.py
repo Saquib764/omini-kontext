@@ -4,6 +4,7 @@ from peft import LoraConfig, get_peft_model_state_dict
 import prodigyopt
 from typing import Dict, List, Optional, Union
 import numpy as np
+import copy
 
 # Import local modules
 from ..pipeline_flux_omini_kontext import FluxOminiKontextPipeline
@@ -11,6 +12,12 @@ from ..pipeline_tools import encode_images, prepare_text_input
 from ..pipeline_qwen_omini_image_edit import QwenOminiImageEditPipeline
 
 from ..qwen_omini_image_edit_utils import forward
+from diffusers import FlowMatchEulerDiscreteScheduler
+
+from diffusers.training_utils import (
+    compute_density_for_timestep_sampling,
+    compute_loss_weighting_for_sd3,
+)
 
 
 class FluxOminiKontextModel(L.LightningModule):
@@ -234,6 +241,16 @@ class QwenOminiImageEditModel(L.LightningModule):
         # Initialize joint attention kwargs
         self.joint_attention_kwargs = {}
 
+        self.noise_scheduler = FlowMatchEulerDiscreteScheduler.from_pretrained(
+            qwen_image_edit_pipe_id,
+            subfolder="scheduler",
+        )
+        self.noise_scheduler.to(device).to(dtype)
+        self.device = device
+        self.dtype = dtype
+        self.noise_scheduler_copy = copy.deepcopy(self.noise_scheduler)
+        self.noise_scheduler_copy.to(device).to(dtype)
+
         self.to(device).to(dtype)
 
     def init_lora(self, lora_path: str, lora_config: dict):
@@ -252,6 +269,18 @@ class QwenOminiImageEditModel(L.LightningModule):
             )
         return list(lora_layers)
 
+
+    def get_sigmas(self, timesteps, n_dim=4, dtype=torch.float32):
+        sigmas = self.noise_scheduler.sigmas.to(device=self.device, dtype=dtype)
+        schedule_timesteps = self.noise_scheduler.timesteps.to(self.device)
+        timesteps = timesteps.to(self.device)
+        step_indices = [(schedule_timesteps == t).nonzero().item() for t in timesteps]
+    
+        sigma = sigmas[step_indices].flatten()
+        while len(sigma.shape) < n_dim:
+            sigma = sigma.unsqueeze(-1)
+        return sigma
+        
     def save_lora(self, path: str):
         FluxOminiKontextPipeline.save_lora_weights(
             save_directory=path,
@@ -376,12 +405,18 @@ class QwenOminiImageEditModel(L.LightningModule):
                 ]
             ]
 
-
-            # Prepare t and x_t
-            t = torch.rand((input_images.shape[0],), device=self.device)
-            x_1 = torch.randn_like(x_0).to(self.device)
-            t_ = t.unsqueeze(1).unsqueeze(1)
-            x_t = ((1 - t_) * x_0 + t_ * x_1).to(self.dtype)
+            u = compute_density_for_timestep_sampling(
+                weighting_scheme="none",
+                batch_size=1,
+                logit_mean=0.0,
+                logit_std=1.0,
+                mode_scale=1.29,
+            )
+            indices = (u * self.noise_scheduler_copy.config.num_train_timesteps).long()
+            timesteps = self.noise_scheduler_copy.timesteps[indices].to(device=self.device)
+            sigmas = self.get_sigmas(timesteps, n_dim=4, dtype=self.dtype)
+            noise = torch.randn_like(x_0).to(self.device)
+            x_t = (1-sigmas) * x_0 + sigmas * noise
 
             latent_model_input = torch.cat([x_t, condition], dim=1)
 
@@ -396,7 +431,7 @@ class QwenOminiImageEditModel(L.LightningModule):
         pred = forward(
             self.transformer,
             hidden_states=latent_model_input,
-            timestep=t,
+            timestep=timesteps,
             guidance=guidance,
             encoder_hidden_states_mask=prompt_embeds_mask,
             encoder_hidden_states=prompt_embeds,
@@ -407,9 +442,18 @@ class QwenOminiImageEditModel(L.LightningModule):
         )[0]
         pred = pred[:, : x_t.size(1)]
 
-        # Compute loss
-        loss = torch.nn.functional.mse_loss(pred, (x_1 - x_0), reduction="mean")
-        self.last_t = t.mean().item()
+        # Compute flowmatching loss
+        weighting = compute_loss_weighting_for_sd3(weighting_scheme="none", sigmas=sigmas)
+
+        target = noise - x_0
+        # target = target.permute(0, 2, 1, 3, 4)
+        loss = torch.mean(
+            (weighting.float() * (pred.float() - target.float()) ** 2).reshape(target.shape[0], -1),
+            1,
+        )
+        loss = loss.mean()
+
+        self.last_t = timesteps.mean().item()
         return loss
 
     def validation_step(self, batch, batch_idx):
