@@ -6,7 +6,7 @@ import time
 from cog import BasePredictor, Input, Path, Secret
 import torch
 from PIL import Image, ImageChops
-from src.pipeline_flux_omini_kontext import FluxOminiKontextPipeline
+from src.pipeline_qwen_omini_image_edit import QwenOminiImageEditPipeline
 import random
 import json
 
@@ -22,16 +22,16 @@ LoRA_MODELS = {
     },
     "spatial_character_insertion": {
         "lora_path": "saquiboye/omini-kontext",
-        "weight_name": "spatial-character-test.safetensors",
+        "weight_name": "qwen/character_spatial_1000.safetensors",
     },
     "character_insertion": {
         "lora_path": "saquiboye/omini-kontext",
-        "weight_name": "character_3000.safetensors",
+        "weight_name": "qwen/character_1000.safetensors",
     },
-    "product_insertion": {
-        "lora_path": "saquiboye/omini-kontext",
-        "weight_name": "product_2000.safetensors",
-    }
+    # "product_insertion": {
+    #     "lora_path": "saquiboye/omini-kontext",
+    #     "weight_name": "product_2000.safetensors",
+    # }
 }
 
 class Predictor(BasePredictor):
@@ -39,8 +39,8 @@ class Predictor(BasePredictor):
         """Load the model into memory to make running multiple predictions efficient"""
 
         ensure_hf_login()
-        self.pipe = FluxOminiKontextPipeline.from_pretrained(
-            "black-forest-labs/FLUX.1-Kontext-dev", torch_dtype=torch.bfloat16
+        self.pipe = QwenOminiImageEditPipeline.from_pretrained(
+            "Qwen/Qwen-Image-Edit", torch_dtype=torch.bfloat16
         ).to("cuda")
 
     def predict(
