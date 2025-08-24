@@ -224,13 +224,14 @@ class FluxOminiKontextDataset(Dataset):
         #     reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
         
         # Paste the reference image on white background, of same size as the reference image
-        reference_image = Image.new("RGB", (reference_image.width, reference_image.height), (255, 255, 255))
+        reference_image_ = Image.new("RGB", (reference_image.width, reference_image.height), (255, 255, 255))
         # random resize and random paste the reference image on the white background
         scale = random.uniform(0.9, 1.1)
         reference_image = reference_image.resize((int(reference_image.width*scale), int(reference_image.height*scale)))
         x = random.randint(0, 50)
         y = random.randint(0, 50)
-        reference_image.paste(reference_image, (x, y))
+        reference_image_.paste(reference_image, (x, y))
+        reference_image = reference_image_
 
         prompt = "add the character to the image"
         reference_delta = np.array(self.delta)

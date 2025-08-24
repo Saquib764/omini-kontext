@@ -245,11 +245,7 @@ class QwenOminiImageEditModel(L.LightningModule):
             qwen_image_edit_pipe_id,
             subfolder="scheduler",
         )
-        self.noise_scheduler.to(device).to(dtype)
-        self.device = device
-        self.dtype = dtype
         self.noise_scheduler_copy = copy.deepcopy(self.noise_scheduler)
-        self.noise_scheduler_copy.to(device).to(dtype)
 
         self.to(device).to(dtype)
 
@@ -414,10 +410,12 @@ class QwenOminiImageEditModel(L.LightningModule):
             )
             indices = (u * self.noise_scheduler_copy.config.num_train_timesteps).long()
             timesteps = self.noise_scheduler_copy.timesteps[indices].to(device=self.device)
-            sigmas = self.get_sigmas(timesteps, n_dim=4, dtype=self.dtype)
+            sigmas = self.get_sigmas(timesteps, n_dim=x_0.ndim, dtype=self.dtype)
             noise = torch.randn_like(x_0).to(self.device)
             x_t = (1-sigmas) * x_0 + sigmas * noise
+            # x_t = x_t.unsqueeze(0)
 
+            # print(x_t.shape, condition.shape, sigmas)
             latent_model_input = torch.cat([x_t, condition], dim=1)
 
             # Prepare guidance
@@ -431,7 +429,7 @@ class QwenOminiImageEditModel(L.LightningModule):
         pred = forward(
             self.transformer,
             hidden_states=latent_model_input,
-            timestep=timesteps,
+            timestep=timesteps/1000,
             guidance=guidance,
             encoder_hidden_states_mask=prompt_embeds_mask,
             encoder_hidden_states=prompt_embeds,
@@ -451,9 +449,12 @@ class QwenOminiImageEditModel(L.LightningModule):
             (weighting.float() * (pred.float() - target.float()) ** 2).reshape(target.shape[0], -1),
             1,
         )
-        loss = loss.mean()
+        # loss = loss.mean()
 
-        self.last_t = timesteps.mean().item()
+        # self.last_t = timesteps.mean().item()
+        
+        # loss = torch.nn.functional.mse_loss(pred, (noise - x_0), reduction="mean")
+        self.last_t = timesteps.mean().item()/1000
         return loss
 
     def validation_step(self, batch, batch_idx):
