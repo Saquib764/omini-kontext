@@ -4,7 +4,7 @@
 build:
   # set to true if your model requires a GPU
   gpu: true
-  cuda: "13"
+  # cuda: "13"
 
   # python version in the form '3.11' or '3.11.4'
   python_version: "3.11"
