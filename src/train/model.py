@@ -35,7 +35,8 @@ class FluxOminiKontextModel(L.LightningModule):
             FluxOminiKontextPipeline.from_pretrained(flux_pipe_id).to(dtype=dtype).to(device)
         )
         self.transformer = self.flux_pipe.transformer
-        self.transformer.gradient_checkpointing = gradient_checkpointing
+        if gradient_checkpointing:
+            self.transformer.enable_gradient_checkpointing()
         self.transformer.train()
 
         # Freeze the Flux pipeline components
