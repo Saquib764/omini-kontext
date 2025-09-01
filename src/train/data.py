@@ -141,6 +141,7 @@ class FluxOminiKontextDatasetHF(Dataset):
         input_image = data['input_image']
         target_image = data['target_image']
         reference_image = data['reference_image']
+        prompt = data['prompt'] if 'prompt' in data else "add the subject to the image"
 
         # Make sure the input image is smaller than 768
         if input_image.width > 768 or input_image.height > 768:
@@ -149,10 +150,10 @@ class FluxOminiKontextDatasetHF(Dataset):
             target_image = target_image.resize((int(target_image.width*scale//16)*16, int(target_image.height*scale//16)*16))
 
         # Randomly resize the reference image
-        reference_image = reference_image.resize((512, 512))
+        if reference_image.width > 512 or reference_image.height > 512:
+            scale = 512 / max(reference_image.width, reference_image.height)
+            reference_image = reference_image.resize((int(reference_image.width*scale//16)*16, int(reference_image.height*scale//16)*16))
 
-
-        prompt = "add the subject to the image"
         if random.random() < self.drop_text_prob:
             prompt = ""
         reference_delta = np.array(self.delta)
@@ -181,6 +182,7 @@ class FluxOminiKontextDataset(Dataset):
         self.init_files = []
         self.reference_files = []
         self.target_files = []
+        self.instruction_files = []
         self.delta = delta
         self.drop_text_prob = drop_text_prob
         self.pil = pil
@@ -188,12 +190,19 @@ class FluxOminiKontextDataset(Dataset):
         print(f"Loading dataset from {src} with spatial={spatial}")
         root = src
         for f in os.listdir(f'{root}/start'):
+            # for text
+            f_text = f.replace(".jpg", ".txt").replace(".jpeg", ".txt").replace(".png", ".txt").replace(".gif", ".txt")
+            f_text = f_text.split(".")
+            f_text[0] = f_text[0] + "_instructions"
+            f_text = ".".join(f_text)
+            self.instruction_files.append(os.path.join(f"{root}/instruction", f_text))
             if not (os.path.isfile(os.path.join(f'{root}/start', f)) and f.lower().endswith(('.jpg', '.jpeg', '.png', '.gif'))):
                 continue
             self.init_files.append(os.path.join(f"{root}/start", f))
             self.reference_files.append(os.path.join(f"{root}/reference", f))
             self.target_files.append(os.path.join(f"{root}/end", f))
-        
+
+            print(f"Loaded {f} with instruction {f_text}")
         self.to_tensor = T.ToTensor()
 
     
@@ -208,6 +217,11 @@ class FluxOminiKontextDataset(Dataset):
         input_image = Image.open(input_image_path).convert("RGB")
         target_image = Image.open(target_image_path).convert("RGB")
         reference_image = Image.open(reference_image_path).convert("RGB")
+        # If instruction file exists, load the instruction, else use "add the character to the image"
+        if os.path.exists(self.instruction_files[idx]):
+            instruction = open(self.instruction_files[idx], "r").read()
+        else:
+            instruction = "add the character to the image"
 
         # make sure the input image is smaller than 1024
         if input_image.width > 1152 or input_image.height > 1152:
@@ -233,7 +247,7 @@ class FluxOminiKontextDataset(Dataset):
         reference_image_.paste(reference_image, (x, y))
         reference_image = reference_image_
 
-        prompt = "add the character to the image"
+        prompt = instruction
         if random.random() < self.drop_text_prob:
             prompt = ""
             

@@ -11,7 +11,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.train.data import (
     FluxOminiKontextDataset
 )
-from datasets import Dataset, DatasetInfo, Features, Image
+from datasets import Dataset, DatasetInfo, Features, Image, Value
 
 import pandas as pd
 
@@ -22,7 +22,7 @@ from huggingface_hub import login
 login()
 
 
-dataset = FluxOminiKontextDataset("custom_data/mixed_product", pil=True)
+dataset = FluxOminiKontextDataset("custom_data/cartoon-swap", pil=True, drop_text_prob=0.0)
 
 print("Dataset length: ", len(dataset))
 
@@ -35,6 +35,7 @@ for i in range(len(dataset)):
         "input_image": item["input_image"],  # Convert image tensors to lists
         "target_image": item["target_image"],
         "reference_image": item["reference_image"],
+        "prompt": item["prompt"],
     })
 
 
@@ -42,6 +43,7 @@ features = Features({
     "input_image": Image(),
     "target_image": Image(),
     "reference_image": Image(),
+    "prompt": Value("string"),
 })
 
 # Keep df in case of future metadata usage, though we build HF dataset from dict for clarity
@@ -57,5 +59,5 @@ dataset_info = DatasetInfo(
 hf_dataset = Dataset.from_dict(_df.to_dict(orient="list"), features=features)
 
 
-hf_dataset.push_to_hub("saquiboye/product-triplet")
+hf_dataset.push_to_hub("saquiboye/cartoon-swap-triplet")
 
