@@ -67,6 +67,13 @@ class Predictor(BasePredictor):
             description="Input prompt.",
             default="Add character to the scene",
         ),
+        negative_prompt: str = Input(
+            description="Input negative prompt.",
+            default="Bad, low quality, deformed, distorted, distorted, ugly",
+        ),
+        should_optimise_reference: bool = Input(
+            description="Should optimise reference?", default=None, choices=[True, False, None]
+        ),
         num_inference_steps: int = Input(
             description="Number of denoising steps", ge=1, le=150, default=20
         ),
@@ -137,14 +144,13 @@ class Predictor(BasePredictor):
                 reference_image = reference_image.resize((width, height), Image.LANCZOS)
         
         try:
-            if has_reference:
-                optimised_reference, new_reference_delta = optimise_image_condition(reference_image, delta)
+            if should_optimise_reference is None:
+                should_optimise_reference = delta[0] == 1
+            if has_reference and should_optimise_reference:
+                print("optimising reference")
+                reference_image, delta = optimise_image_condition(reference_image, delta)
             try:
-                print("optimised_reference: ", optimised_reference)
-                print("new_reference_delta: ", new_reference_delta)
-                o = "/tmp/optimised_reference.png"
-                optimised_reference.save(o)
-                print("saved optimised_reference to: ", Path(o))
+                print("delta: ", delta)
             except Exception as e:
                 print("Error saving optimised reference: ", e)
 
@@ -159,6 +165,7 @@ class Predictor(BasePredictor):
             print("guidance_scale: ", guidance_scale)
             result_img = self.pipe(
                 prompt=prompt,
+                negative_prompt=negative_prompt,
                 image=image,
                 reference=reference_image if has_reference else None,
                 reference_delta=delta if has_reference else None,
