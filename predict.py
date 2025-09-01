@@ -72,7 +72,7 @@ class Predictor(BasePredictor):
             default="Bad, low quality, deformed, distorted, distorted, ugly",
         ),
         should_optimise_reference: bool = Input(
-            description="Should optimise reference?", default=None, choices=[True, False, None]
+            description="Should optimise reference?", default=None
         ),
         num_inference_steps: int = Input(
             description="Number of denoising steps", ge=1, le=150, default=20
