@@ -1,0 +1,37 @@
+[project]
+name = "omini-kontext"
+description = "Nodes to use Omini Kontext framework for multi-image reference using Flux Kontext model. It has node to for Nunchaku compatibility. The is an editor node to place the character/product on the image for spatial control."
+version = "1.0.0"
+license = {file = "LICENSE"} 
+# classifiers = [
+#     # For OS-independent nodes (works on all operating systems)
+#     "Operating System :: OS Independent",
+#
+#     # OR for OS-specific nodes, specify the supported systems:
+#     "Operating System :: Microsoft :: Windows",  # Windows specific
+#     "Operating System :: POSIX :: Linux",  # Linux specific
+#     "Operating System :: MacOS",  # macOS specific
+#
+#     # GPU Accelerator support. Pick the ones that are supported by your extension.
+#     "Environment :: GPU :: NVIDIA CUDA",    # NVIDIA CUDA support
+#     "Environment :: GPU :: AMD ROCm",       # AMD ROCm support
+#     "Environment :: GPU :: Intel Arc",      # Intel Arc support
+#     "Environment :: NPU :: Huawei Ascend",  # Huawei Ascend support
+#     "Environment :: GPU :: Apple Metal",    # Apple Metal support
+# ]
+
+dependencies = ["torch>=2.0.0", "lightning>=2.0.0", "diffusers>=0.35.1", "transformers>=4.35.0", "peft>=0.17.0", "prodigyopt>=1.0.0", "Pillow>=9.0.0", "numpy>=1.21.0", "accelerate>=0.20.0", "safetensors>=0.3.0", "PyYAML>=6.0"]
+
+[project.urls]
+Repository = "https://github.com/Saquib764/omini-kontext"
+#  Used by Comfy Registry https://registry.comfy.org
+Documentation = "https://github.com/Saquib764/omini-kontext/wiki"
+"Bug Tracker" = "https://github.com/Saquib764/omini-kontext/issues"
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "omini-kontext"
+Icon = ""
+includes = [] 
+# "requires-comfyui" = ">=1.0.0"  # ComfyUI version compatibility
+
