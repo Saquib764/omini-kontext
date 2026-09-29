@@ -94,7 +94,7 @@ def new_forward(self, x, timestep, context, y=None, guidance=None, ref_latents=N
             img_ids = torch.cat([img_ids, kontext_ids], dim=1)
 
     txt_ids = torch.zeros((bs, context.shape[1], 3), device=x.device, dtype=x.dtype)
-    out = self.forward_orig(img, img_ids, context, txt_ids, timestep, y, guidance, control, transformer_options, attn_mask=kwargs.get("attention_mask", None))
+    out = self.forward_orig(img, img_ids, context, txt_ids, timestep, y, guidance, control, transformer_options=transformer_options, attn_mask=kwargs.get("attention_mask", None))
     out = out[:, :img_tokens]
     return rearrange(out, "b (h w) (c ph pw) -> b c (h ph) (w pw)", h=h_len, w=w_len, ph=2, pw=2)[:,:,:h_orig,:w_orig]
 
